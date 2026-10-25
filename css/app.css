@@ -1,0 +1,332 @@
+/* Θίνες Ρεθύμνου — στυλ. Χρώματα από το πρωτόκολλο πεδίου. Μεγάλα κουμπιά για tablet στον ήλιο. */
+:root {
+  --blue: #1f6b91;
+  --green: #2f6b50;
+  --gold: #c9a24b;
+  --cream: #fff7ec;
+  --line: #d8c79a;
+  --ink: #1b2a2f;
+  --red: #c0392b;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior: contain;
+}
+
+body {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100dvh;
+  background: var(--cream);
+  color: var(--ink);
+  font: 18px/1.45 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Ρητή θέση στο πλέγμα. Όταν κρύβονται η επάνω γραμμή και οι καρτέλες (τοποθέτηση στον χάρτη),
+   το #views πρέπει να μένει στη μεσαία γραμμή. Αλλιώς καταρρέει σε ύψος 0 (βρέθηκε με δοκιμή 25/10). */
+#topbar { grid-row: 1; }
+#views { grid-row: 2; }
+#tabbar { grid-row: 3; }
+
+/* Επάνω γραμμή */
+#topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  padding-top: calc(8px + env(safe-area-inset-top));
+  background: var(--blue);
+  color: #fff;
+}
+#topTitle { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+#topTitle small { opacity: 0.9; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.net { font-size: 14px; white-space: nowrap; padding: 4px 10px; border-radius: 14px; background: rgba(255, 255, 255, 0.18); }
+.net.on { color: #c8f7d4; }
+.net.off { color: #ffe2a8; font-weight: 700; }
+
+/* Οθόνες */
+#views { overflow-y: auto; min-height: 0; position: relative; }
+.view { display: none; }
+.view.active { display: block; }
+.view:not(#view-map) { padding: 12px; }
+#view-map.active { height: 100%; position: relative; }
+
+/* Κάρτες */
+.card {
+  max-width: 860px;
+  margin: 0 auto 12px;
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+.card.good { background: #eaf4ec; border-color: var(--green); }
+.card.warnc { background: #fff1d6; border-color: var(--gold); }
+h2 { margin: 0 0 10px; font-size: 20px; color: var(--blue); border-bottom: 2px solid var(--blue); padding-bottom: 6px; }
+h3 { margin: 14px 0 6px; font-size: 17px; color: var(--green); }
+p { margin: 8px 0; }
+.hint { color: #555; font-size: 15px; margin: 6px 0; }
+.plain { margin: 6px 0; padding-left: 22px; }
+.plain li { margin: 4px 0; }
+
+/* Κουμπιά */
+.btn {
+  min-height: 52px;
+  padding: 0 18px;
+  border: 2px solid var(--blue);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--blue);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+}
+.btn.primary { background: var(--blue); color: #fff; }
+.btn.danger { border-color: var(--red); color: var(--red); }
+.btn.ghost { border-color: #bbb; color: #555; }
+.btn.small { min-height: 40px; padding: 0 12px; font-size: 15px; }
+.btn:disabled { opacity: 0.5; }
+.btn-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.stack { display: flex; flex-direction: column; gap: 10px; margin: 10px 0; }
+.stack .btn { text-align: left; }
+
+/* Chips */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; align-items: center; }
+.chip {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 2px solid #cdbf93;
+  border-radius: 22px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+.chip.on { background: var(--blue); border-color: var(--blue); color: #fff; }
+.chip.inv.on { background: #7b3fa0; border-color: #7b3fa0; }
+.chip.add { border-style: dashed; color: var(--blue); font-weight: 600; }
+span.chip { min-height: 0; padding: 2px 10px; font-size: 14px; cursor: default; display: inline-flex; align-items: center; }
+span.chip.warn { background: #ffe2a8; border-color: var(--gold); }
+span.chip.ok { background: #e6efe7; border-color: #8bb59a; }
+span.chip.calc { background: #fff8e1; border-color: var(--gold); }
+
+/* Πεδία */
+.field { display: block; margin: 10px 0; font-size: 15px; font-weight: 600; color: #444; }
+input, textarea, select {
+  display: block;
+  width: 100%;
+  min-height: 52px;
+  margin-top: 4px;
+  padding: 8px 12px;
+  border: 2px solid #cdbf93;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 400;
+}
+textarea { min-height: 80px; }
+input:focus, textarea:focus { outline: 3px solid #8fc1d8; border-color: var(--blue); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.block { margin: 14px 0; }
+
+/* Κάτω γραμμή καρτελών */
+#tabbar {
+  display: flex;
+  background: #fff;
+  border-top: 2px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tab {
+  flex: 1;
+  min-height: 64px;
+  border: 0;
+  background: none;
+  color: #555;
+  font: inherit;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+}
+.tab span { font-size: 22px; line-height: 1; }
+.tab.active { color: var(--blue); font-weight: 700; box-shadow: inset 0 3px 0 var(--blue); }
+
+/* Λίστα καταγραφών */
+.kindgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.kbtn {
+  min-height: 84px;
+  padding: 6px;
+  border: 2px solid var(--kc);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+}
+.kbtn i { font-style: normal; font-size: 28px; color: var(--kc); line-height: 1; }
+.row { display: flex; gap: 12px; align-items: flex-start; padding: 10px 2px; border-top: 1px solid #eee; cursor: pointer; }
+.sym { flex: none; width: 44px; height: 44px; border-radius: 10px; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+.rbody { flex: 1; min-width: 0; }
+.meta { display: block; color: #555; font-size: 15px; }
+.badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; align-items: center; }
+
+/* Πρόοδος και λίστες */
+.steps { list-style: none; margin: 0; padding: 0; }
+.steps li { padding: 6px 0; border-bottom: 1px dashed #e5dcc0; }
+.steps li.ok { color: var(--green); }
+.steps li.no { color: #555; }
+
+/* Θέση */
+.pos { padding: 10px; border: 2px solid #ccc; border-radius: 12px; background: #fff; }
+.pos.ok { border-color: var(--green); background: #eaf4ec; }
+.pos.calc { border-color: var(--gold); background: #fff8e1; }
+.pos-status { margin-bottom: 8px; font-size: 15px; word-break: break-word; }
+
+/* Φόρμα σημείου */
+#sheet { position: fixed; inset: 0; z-index: 2000; background: rgba(0, 0, 0, 0.45); display: flex; align-items: flex-end; justify-content: center; }
+.sheet-card { display: flex; flex-direction: column; width: 100%; max-width: 780px; max-height: 96dvh; background: var(--cream); border-radius: 18px 18px 0 0; }
+.sheet-head { padding: 12px 16px 0; }
+.sheet-head h2 { margin-bottom: 0; }
+#sheetBody { flex: 1; overflow-y: auto; padding: 4px 16px 16px; }
+.sheet-foot { display: flex; gap: 10px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: #fff; }
+.spacer { flex: 1; }
+
+.zones { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.zbtn {
+  min-height: 74px;
+  padding: 4px 2px;
+  border: 3px solid transparent;
+  border-radius: 12px;
+  background: var(--zc);
+  color: var(--ink);
+  font: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.zbtn b { font-size: 24px; line-height: 1.1; }
+.zbtn span { font-size: 11px; line-height: 1.1; text-align: center; }
+.zbtn.on { border-color: var(--ink); box-shadow: inset 0 0 0 2px #fff; }
+
+.pct { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 10px 0; }
+.plabel { flex: 1 0 100%; font-weight: 600; font-size: 15px; }
+.pct input[type='range'] { flex: 1; min-width: 140px; min-height: 0; height: 44px; margin: 0; padding: 0; border: 0; }
+.pct .num { flex: none; width: 90px; margin: 0; }
+.sum { padding: 8px 12px; border-radius: 10px; background: #eee; font-weight: 600; font-size: 15px; }
+.sum.ok { background: #e6efe7; color: var(--green); }
+.sum.warn { background: #ffe2a8; color: #7a4a00; }
+
+.thumbs { display: flex; flex-wrap: wrap; gap: 12px; margin: 8px 0; }
+.thumb { position: relative; width: 112px; height: 112px; }
+.thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; border: 1px solid #ccc; }
+.thumb .x { position: absolute; top: -8px; right: -8px; width: 38px; height: 38px; border: 0; border-radius: 50%; background: var(--red); color: #fff; font-size: 16px; }
+
+/* Υγεία */
+.crit { margin: 14px 0 18px; }
+.opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.opt { min-height: 96px; padding: 8px 10px; border: 3px solid transparent; border-radius: 12px; font: inherit; font-size: 15px; text-align: left; color: var(--ink); cursor: pointer; }
+.opt b { display: block; font-size: 26px; line-height: 1.1; }
+.opt.s0 { background: #f8d7da; }
+.opt.s1 { background: #fdf0c5; }
+.opt.s2 { background: #d4ead8; }
+.opt.on { border-color: var(--ink); }
+.total { display: flex; flex-direction: column; gap: 2px; margin-top: 12px; padding: 14px; border-radius: 14px; color: #fff; }
+.total b { font-size: 34px; line-height: 1.1; }
+.total.pending { background: #7c8488; }
+.chart { display: block; width: 100%; height: auto; background: #fff; border-radius: 8px; }
+.legendrow { font-size: 14px; margin-top: 6px; }
+.legendrow i { display: inline-block; width: 14px; height: 14px; margin: 0 4px 0 12px; vertical-align: -2px; border-radius: 3px; }
+.legendrow i:first-child { margin-left: 0; }
+
+/* Αποστολή */
+.tilerow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid #eee; }
+.tilerow > div { flex: 1; min-width: 0; }
+progress { display: block; width: 100%; height: 14px; margin: 6px 0 2px; }
+
+/* Χάρτης */
+#map.leaflet-container {
+  position: absolute;
+  inset: 0;
+  background-color: #f3ebd8;
+  background-image: linear-gradient(#e3d6b4 1px, transparent 1px), linear-gradient(90deg, #e3d6b4 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+#mapTools { position: absolute; top: 10px; right: 10px; z-index: 1000; display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+.mt { min-height: 48px; padding: 0 14px; border: 2px solid var(--blue); border-radius: 12px; background: #fff; color: var(--blue); font: inherit; font-size: 15px; font-weight: 600; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35); cursor: pointer; }
+.mt.on { background: #1a73e8; color: #fff; }
+.mt.warn { background: #ffe2a8; border-color: var(--gold); color: #5a3a00; }
+.legend { position: absolute; left: 10px; bottom: 44px; z-index: 1000; padding: 10px 12px; background: rgba(255, 255, 255, 0.96); border-radius: 12px; font-size: 14px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35); max-width: 320px; }
+.legend div { margin: 4px 0; display: flex; align-items: center; gap: 8px; }
+.lg { display: inline-block; flex: none; width: 18px; height: 18px; border-radius: 5px; border: 2px solid #fff; box-shadow: 0 0 0 1px #888; }
+.lg.dash { background: #fff; border: 2px dashed #222; box-shadow: none; }
+#placeBanner { position: absolute; top: 10px; left: 10px; right: 10px; z-index: 1100; max-width: 620px; margin: 0 auto; padding: 12px; background: #fff; border: 3px solid var(--red); border-radius: 14px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); }
+#placeText { margin-bottom: 8px; font-weight: 600; font-size: 16px; }
+.placing #mapTools, .placing #tabbar, .placing #topbar { display: none; }
+
+.mk { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border: 3px solid #fff; border-radius: 50%; box-shadow: 0 1px 5px rgba(0, 0, 0, 0.6); font-size: 14px; font-weight: 800; line-height: 1; }
+.mk.sq { border-radius: 8px; }
+.mk.calc { border: 3px dashed #222; opacity: 0.88; }
+.mk.place { width: 44px; height: 44px; border: 3px solid var(--red); background: #fff; color: var(--red); font-size: 30px; }
+.placing .leaflet-marker-icon:not(.place-wrap) { pointer-events: none; }
+.leaflet-popup-content { font-size: 16px; }
+
+/* Παράθυρα και ειδοποιήσεις */
+#dialog { position: fixed; inset: 0; z-index: 3000; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0, 0, 0, 0.5); }
+.dialog-card { width: 100%; max-width: 460px; padding: 18px; background: #fff; border-radius: 16px; }
+.dialog-card .btn-row { justify-content: flex-end; }
+#toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(84px + env(safe-area-inset-bottom));
+  z-index: 4000;
+  max-width: min(92vw, 560px);
+  padding: 12px 18px;
+  background: #1b2a2f;
+  color: #fff;
+  border-radius: 14px;
+  font-size: 16px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 10px);
+  transition: opacity 0.2s, transform 0.2s;
+}
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+@media (max-width: 600px) {
+  .grid2 { grid-template-columns: 1fr; }
+  .opts { grid-template-columns: 1fr; }
+  .opt { min-height: 0; }
+}
+
+/* Οδηγός φυτών */
+.guide h3 small { font-weight: 400; color: #555; }
+.thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px; }
+.th { padding: 0; border: 0; background: #eee; border-radius: 8px; overflow: hidden; aspect-ratio: 1; cursor: pointer; }
+.th img { width: 100%; height: 100%; object-fit: cover; display: block; }
+#lightbox { position: fixed; inset: 0; background: rgba(0,0,0,.88); display: flex; align-items: center; justify-content: center; z-index: 60; padding: 10px; }
+#lightbox[hidden] { display: none; }
+.lb-card { max-width: 900px; width: 100%; max-height: 100%; display: flex; flex-direction: column; gap: 8px; color: #fff; }
+.lb-card img { max-width: 100%; max-height: 62vh; object-fit: contain; align-self: center; border-radius: 8px; }
+#lbCap { font-size: 14px; text-align: center; }
+#lbCap a { color: #9fd0ee; }

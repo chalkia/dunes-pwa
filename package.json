@@ -1,0 +1,11 @@
+{
+  "name": "dunes-pwa",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Θίνες Ρεθύμνου — εφαρμογή πεδίου (PWA)",
+  "scripts": {
+    "check": "node tools/check_all.mjs",
+    "serve": "python3 -m http.server 8765"
+  }
+}

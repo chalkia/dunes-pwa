@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="el">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Θίνες Ρεθύμνου — Καταγραφή πεδίου</title>
+  <meta name="theme-color" content="#1F6B91">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="lib/leaflet/leaflet.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <header id="topbar">
+    <div id="topTitle"></div>
+    <div id="netBadge" class="net"></div>
+  </header>
+
+  <main id="views">
+    <section id="view-home" class="view active"></section>
+    <section id="view-records" class="view"></section>
+    <section id="view-map" class="view">
+      <div id="map"></div>
+      <div id="mapTools">
+        <button id="btnLocate" class="mt" type="button">📍 Η θέση μου</button>
+        <button id="btnFit" class="mt" type="button">⌖ Περιοχή</button>
+        <button id="btnBase" class="mt" type="button">Υπόβαθρο</button>
+        <button id="btnScope" class="mt" type="button">Διατομή</button>
+        <button id="btnLegend" class="mt" type="button">ℹ Σύμβολα</button>
+        <button id="btnUnplaced" class="mt warn" type="button" hidden>⚠ Χωρίς θέση</button>
+      </div>
+      <div id="legendBox" class="legend" hidden>
+        <b>Σύμβολα</b>
+        <div><i class="lg" style="background:#E8CF4F"></i> τετράγωνο: γυμνή άμμος (φυτά &lt; 20%)</div>
+        <div><i class="lg" style="background:#8CC084"></i> τετράγωνο: αραιά φυτά (20–60%)</div>
+        <div><i class="lg" style="background:#2F6B50"></i> τετράγωνο: πυκνά φυτά / θάμνοι</div>
+        <div><i class="lg" style="background:#D4A017"></i> ★ ομάδα κρινάκι</div>
+        <div><i class="lg" style="background:#C0392B"></i> ✖ ανθρώπινη πίεση</div>
+        <div><i class="lg" style="background:#7B3FA0"></i> ● εισβλητικό φυτό</div>
+        <div><i class="lg" style="background:#B8660B"></i> ? άγνωστο φυτό</div>
+        <div><i class="lg dash"></i> διακεκομμένο περίγραμμα = θέση υπολογισμένη</div>
+      </div>
+      <div id="placeBanner" hidden>
+        <div id="placeText"></div>
+        <div class="btn-row">
+          <button id="placeOk" class="btn primary" type="button">✔ Εδώ</button>
+          <button id="placeCancel" class="btn" type="button">Άκυρο</button>
+        </div>
+      </div>
+    </section>
+    <section id="view-guide" class="view"></section>
+    <section id="view-health" class="view"></section>
+    <section id="view-export" class="view"></section>
+  </main>
+
+  <nav id="tabbar">
+    <button type="button" class="tab active" data-act="tab" data-tab="home"><span>🏠</span>Διατομή</button>
+    <button type="button" class="tab" data-act="tab" data-tab="records"><span>📝</span>Καταγραφή</button>
+    <button type="button" class="tab" data-act="tab" data-tab="map"><span>🗺</span>Χάρτης</button>
+    <button type="button" class="tab" data-act="tab" data-tab="guide"><span>🌿</span>Φυτά</button>
+    <button type="button" class="tab" data-act="tab" data-tab="health"><span>✅</span>Υγεία</button>
+    <button type="button" class="tab" data-act="tab" data-tab="export"><span>📤</span>Αποστολή</button>
+  </nav>
+
+  <div id="sheet" hidden>
+    <div class="sheet-card">
+      <div class="sheet-head"><h2 id="sheetTitle"></h2></div>
+      <div id="sheetBody"></div>
+      <div class="sheet-foot">
+        <button id="sheetDelete" class="btn danger" type="button" hidden>🗑 Διαγραφή</button>
+        <span class="spacer"></span>
+        <button id="sheetCancel" class="btn" type="button">Άκυρο</button>
+        <button id="sheetSave" class="btn primary" type="button">Αποθήκευση</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="dialog" hidden>
+    <div class="dialog-card">
+      <p id="dialogText"></p>
+      <div class="btn-row">
+        <button id="dialogCancel" class="btn" type="button">Όχι</button>
+        <button id="dialogOk" class="btn primary" type="button">Ναι</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="lightbox" hidden>
+    <div class="lb-card">
+      <img id="lbImg" alt="">
+      <div id="lbCap"></div>
+      <div class="btn-row">
+        <button class="btn" type="button" data-act="lb-step" data-d="-1">◀</button>
+        <button class="btn" type="button" data-act="lb-close">Κλείσιμο</button>
+        <button class="btn" type="button" data-act="lb-step" data-d="1">▶</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <input id="fileCam" type="file" accept="image/*" capture="environment" hidden>
+  <input id="fileGal" type="file" accept="image/*" multiple hidden>
+  <input id="importFile" type="file" accept=".zip,application/zip" multiple hidden>
+
+  <script src="lib/leaflet/leaflet.js"></script>
+  <script src="lib/jszip.min.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
