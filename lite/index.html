@@ -18,7 +18,11 @@
 <body>
   <header id="topbar">
     <div id="topTitle"></div>
-    <div id="netBadge" class="net"></div>
+    <div class="top-actions">
+      <button id="btnPrepTop" class="top-btn" type="button" data-act="tab" data-tab="prep" title="Ρύθμιση ομάδας και περιοχής"><i class="fa-solid fa-sliders"></i> <span>Ρύθμιση</span></button>
+      <button id="btnSendTop" class="top-btn" type="button" data-act="tab" data-tab="send" title="Αποστολή δεδομένων"><i class="fa-solid fa-paper-plane"></i> <span id="sendBadge">Αποστολή</span></button>
+      <div id="netBadge" class="net"></div>
+    </div>
   </header>
 
   <main id="views">
@@ -30,6 +34,7 @@
         <button id="btnLocate" class="mt" type="button"><i class="fa-solid fa-location-crosshairs"></i> Η θέση μου</button>
         <button id="btnFit" class="mt" type="button"><i class="fa-solid fa-expand"></i> Περιοχή</button>
         <button id="btnBase" class="mt" type="button">Υπόβαθρο</button>
+        <button id="btnMapPlants" class="mt" type="button" data-act="plants-open"><i class="fa-solid fa-leaf"></i> Φυτά</button>
       </div>
       <div id="pinBar"></div>
       <div id="placeBanner" hidden>
@@ -45,16 +50,17 @@
   </main>
 
   <nav id="tabbar">
-    <button type="button" class="tab active" data-act="tab" data-tab="prep"><span><i class="fa-solid fa-suitcase"></i></span>Ετοιμασία</button>
-    <button type="button" class="tab" data-act="tab" data-tab="work"><span><i class="fa-solid fa-route"></i></span>Έρευνα</button>
+    <button type="button" class="tab active" data-act="tab" data-tab="work"><span><i class="fa-solid fa-compass"></i></span>Έρευνα</button>
     <button type="button" class="tab" data-act="tab" data-tab="map"><span><i class="fa-solid fa-map"></i></span>Χάρτης</button>
-    <button type="button" class="tab" data-act="tab" data-tab="plants"><span><i class="fa-solid fa-leaf"></i></span>Φυτά</button>
-    <button type="button" class="tab" data-act="tab" data-tab="send"><span><i class="fa-solid fa-paper-plane"></i></span>Στείλε</button>
+    <button type="button" class="tab" data-act="plants-open" data-tab="plants"><span><i class="fa-solid fa-leaf"></i></span>Φυτά</button>
   </nav>
 
   <div id="sheet" hidden>
     <div class="sheet-card">
-      <div class="sheet-head"><h2 id="sheetTitle"></h2></div>
+      <div class="sheet-head">
+        <h2 id="sheetTitle"></h2>
+        <button class="btn small" type="button" data-act="plants-open"><i class="fa-solid fa-leaf"></i> Φυτά</button>
+      </div>
       <div id="sheetBody"></div>
       <div class="sheet-foot">
         <button id="sheetDelete" class="btn danger" type="button" hidden><i class="fa-solid fa-trash-can"></i> Διαγραφή</button>

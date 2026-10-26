@@ -1,4 +1,4 @@
-/* Αμμοθίνες lite: ό,τι προσθέτει πάνω στο ../css/app.css */
+/* Αμμοθίνες lite: αναδομημένο περιβάλλον πεδίου για μαθητές (πάνω στο ../css/app.css) */
 .lite-tag { font: 700 12px/1 system-ui, sans-serif; background: var(--gold); color: #213236; padding: 3px 7px; border-radius: 999px; vertical-align: 3px; }
 .ready { font-size: 20px; font-weight: 700; color: var(--green); }
 .card.locked { opacity: 0.6; }
@@ -7,8 +7,99 @@
 .zchip { border-color: var(--zc); }
 .zchip.on { background: var(--zc); color: #213236; border-color: #213236; }
 
+/* Επάνω μπάρα: διακριτικά κουμπιά Ρύθμισης και Αποστολής */
+.top-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.top-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1.5px solid rgba(255, 255, 255, 0.55);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font: 600 14px/1 system-ui, sans-serif;
+  cursor: pointer;
+}
+.top-btn.active { background: #fff; color: var(--blue); border-color: #fff; }
+.top-btn .badge-cnt {
+  background: var(--gold);
+  color: #213236;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 999px;
+}
+@media (max-width: 620px) {
+  .top-btn span:not(.badge-cnt) { display: none; }
+  .top-btn { padding: 0 10px; }
+}
+
+/* Μπάρα πορείας (Stepper 3 βημάτων) στην Έρευνα */
+.stepper {
+  max-width: 860px;
+  margin: 0 auto 14px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background: #fff;
+  padding: 8px;
+  border-radius: 20px;
+  border: 2px solid var(--line);
+  box-shadow: 0 3px 0 rgba(200, 160, 80, 0.15);
+}
+.step-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 6px 10px;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  background: #f8f2e4;
+  color: #5a5146;
+  font: 700 15px/1.2 system-ui, sans-serif;
+  cursor: pointer;
+  text-align: left;
+}
+.step-btn .step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #e2d4b5;
+  color: #213236;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font: 700 14px var(--round);
+  flex-shrink: 0;
+}
+.step-btn.done .step-num { background: var(--green); color: #fff; }
+.step-btn.active {
+  background: var(--blue);
+  color: #fff;
+  border-color: var(--blue);
+  box-shadow: 0 3px 0 rgba(14, 124, 134, 0.28);
+}
+.step-btn.active .step-num { background: var(--gold); color: #213236; }
+@media (max-width: 560px) {
+  .step-btn { flex-direction: column; text-align: center; font-size: 13px; gap: 4px; padding: 6px 4px; }
+}
+
+/* Κάρτες πλοήγησης επόμενου/προηγούμενου βήματος */
+.step-nav {
+  max-width: 860px;
+  margin: 12px auto 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
 /* Στάσεις (λειτουργία Β) */
-.stop { padding: 10px; margin: 8px 0; border: 2px solid var(--line); border-radius: 16px; }
+.stop { padding: 12px; margin: 10px 0; border: 2px solid var(--line); border-radius: 16px; background: #fffdf8; }
 .stop-h { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .stop-h b { display: inline-flex; width: 40px; height: 40px; border-radius: 50%; align-items: center; justify-content: center; background: var(--blue); color: #fff; font: 700 18px var(--round); }
 .stop-h label { display: flex; align-items: center; gap: 6px; font-weight: 600; }
@@ -19,27 +110,188 @@
 .det { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 0; border-top: 1px dashed var(--line); }
 .det input { flex: 1; min-width: 200px; margin: 0; }
 
-/* Κάτοψη quadrat */
-.qwrap { overflow: auto; max-height: 72vh; border-radius: 14px; border: 3px solid var(--line); background: #222; -webkit-overflow-scrolling: touch; }
+/* Κεφαλίδα παραθύρου Τετραγώνου Πλαισίου */
+.sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.sheet-head h2 { margin: 0; }
+
+/* Υπο-καρτέλες μέσα στο Τετράγωνο πλαίσιο */
+.q-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+  background: #f5ebd6;
+  padding: 5px;
+  border-radius: 14px;
+}
+.q-tab {
+  min-height: 44px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #4a4238;
+  font: 700 14px/1.2 system-ui, sans-serif;
+  cursor: pointer;
+  padding: 6px 8px;
+}
+.q-tab.active {
+  background: var(--blue);
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* Κάτοψη τετραγώνου πλαισίου */
+.qwrap { overflow: auto; max-height: 62vh; border-radius: 14px; border: 3px solid var(--line); background: #222; -webkit-overflow-scrolling: touch; }
+.qwrap.compact { max-height: 38vh; margin-bottom: 10px; }
 .qinner { position: relative; min-width: 100%; }
 .qinner[data-act="corner"] { cursor: crosshair; }
 .qinner img { display: block; width: 100%; height: auto; user-select: none; -webkit-user-select: none; }
 #qCanvas { position: absolute; left: 0; top: 0; pointer-events: none; }
-.pcts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; }
-.pctf { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; }
-.pctf span { flex: 1; }
-.pctf input { width: 90px; min-height: 48px; margin: 0; font-size: 20px; text-align: center; }
-.x-mini { border: 0; background: none; color: inherit; padding: 0 0 0 6px; cursor: pointer; }
-@media (max-width: 600px) { .pcts { grid-template-columns: 1fr; } }
 
-/* Κουμπιά πινεζών στον χάρτη */
-#pinBar { position: absolute; left: 10px; bottom: 30px; z-index: 1000; display: flex; flex-wrap: wrap; gap: 8px; max-width: calc(100% - 20px); }
-.pbtn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; width: 82px; height: 74px; border: 3px solid var(--kc); border-radius: 16px; background: #fff; color: var(--ink); font: 700 13px system-ui, sans-serif; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35); cursor: pointer; }
+/* Διαδραστικοί μετρητές κάλυψης (%) */
+.pcts { display: flex; flex-direction: column; gap: 10px; }
+.pct-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #fffdf8;
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  flex-wrap: wrap;
+}
+.pct-label { font-weight: 700; font-size: 16px; min-width: 160px; flex: 1; }
+.pct-ctrls { display: flex; align-items: center; gap: 6px; }
+.pct-step {
+  min-width: 44px;
+  min-height: 44px;
+  border: 2px solid var(--blue);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--blue);
+  font: 700 16px system-ui, sans-serif;
+  cursor: pointer;
+  padding: 0 8px;
+}
+.pct-step:active { background: #e1f4f5; }
+.pctf { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 16px; margin: 0; }
+.pctf input { width: 78px; min-height: 44px; margin: 0; font-size: 20px; text-align: center; font-weight: 700; }
+.cov-bar {
+  height: 18px;
+  border-radius: 999px;
+  background: #eee5d0;
+  overflow: hidden;
+  display: flex;
+  margin: 10px 0 6px;
+  border: 1px solid #d5c49e;
+}
+.cov-seg { height: 100%; transition: width 0.2s; }
+
+/* Επιλογή φυτών με μικρογραφίες μέσα στο Τετράγωνο πλαίσιο */
+.sp-pick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+  gap: 8px;
+  margin: 10px 0;
+}
+.sp-mini {
+  display: flex;
+  flex-direction: column;
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  overflow: hidden;
+  position: relative;
+}
+.sp-mini.on { border-color: var(--green); background: #eaf6ee; box-shadow: 0 0 0 2px var(--green); }
+.sp-mini-toggle {
+  border: 0;
+  background: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.sp-mini-toggle img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
+.sp-mini-toggle b { padding: 6px 8px 4px; font-size: 13px; line-height: 1.2; display: block; }
+.sp-mini-check {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+.sp-mini.on .sp-mini-check { background: var(--green); color: #fff; }
+.sp-mini-zoom {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 0;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+}
+
+.x-mini { border: 0; background: none; color: inherit; padding: 0 0 0 6px; cursor: pointer; }
+
+/* Κουμπιά πινεζών και πλαισίου στον χάρτη */
+#pinBar { position: absolute; left: 10px; bottom: 24px; z-index: 1000; display: flex; flex-wrap: wrap; gap: 8px; max-width: calc(100% - 20px); }
+.pbtn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; width: 86px; height: 74px; border: 3px solid var(--kc); border-radius: 16px; background: #fff; color: var(--ink); font: 700 13px system-ui, sans-serif; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35); cursor: pointer; }
 .pbtn i { font-size: 24px; color: var(--kc); }
+.pbtn.pbtn-main { width: 104px; background: var(--green); color: #fff; border-color: #fff; }
+.pbtn.pbtn-main i { color: #fff; }
 .placing #pinBar { display: none; }
 
-/* Κατάλογος */
-.pgrid { max-width: 860px; margin: 0 auto 14px; display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+/* Αναδυόμενος Κατάλογος Φυτών (Σύντομη Αναφορά παντού) */
+#view-plants.overlay-open {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 2600;
+  background: var(--cream);
+  overflow-y: auto;
+  padding: 12px;
+}
+.plants-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  max-width: 860px;
+  margin: 0 auto 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 16px;
+  background: var(--blue);
+  color: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+}
+.plants-sticky h2 { margin: 0; color: #fff; font-size: 19px; }
+.plants-sticky .btn { background: #fff; color: var(--blue); border-color: #fff; min-height: 42px; }
+
+.pgrid { max-width: 860px; margin: 0 auto 14px; display: grid; grid-template-columns: repeat(auto-fill, minmax(185px, 1fr)); gap: 12px; }
 .pcard { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 0 0 10px; border: 2px solid var(--line); border-radius: 18px; background: #fff; overflow: hidden; cursor: pointer; text-align: left; font: inherit; color: var(--ink); }
 .pcard img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; margin-bottom: 6px; }
 .pcard b, .pcard i { padding: 0 10px; }

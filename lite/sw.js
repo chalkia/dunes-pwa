@@ -4,7 +4,7 @@
 // 3. TILE_CACHE: τα πλακίδια του χάρτη. ΚΟΙΝΑ με την πλήρη εφαρμογή (ίδιο όνομα με το js/map.js).
 // Τα PLANTS_CACHE και οι μικρογραφίες ενημερώνονται από το «npm run lite-catalog».
 // Ο φύλακας tools/check_all.mjs ελέγχει ότι κάθε αρχείο του SHELL υπάρχει.
-const APP_CACHE = 'lite-shell-v3-7a1f733f';
+const APP_CACHE = 'lite-shell-v4-7a1f733f';
 const PLANTS_CACHE = 'lite-plants-7a1f733f';
 const TILE_CACHE = 'dunes-tiles-v1';
 const TILE_HOSTS = ['tile.openstreetmap.org', 'server.arcgisonline.com'];

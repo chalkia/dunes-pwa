@@ -14,7 +14,7 @@ export const ZONES = [
 // Είδη σημείων που καταγράφονται. «start» και «end» ζουν μέσα στη διατομή, όχι στα σημεία.
 // icon: εικονίδιο Font Awesome (κλάση), για οθόνες και χάρτη.
 export const KINDS = {
-  quadrat: { label: 'Τετράγωνο 1×1 μ.', short: 'Τετράγωνο', icon: 'fa-solid fa-vector-square', color: '#2F6B50' },
+  quadrat: { label: 'Τετράγωνο πλαίσιο', short: 'Πλαίσιο', icon: 'fa-solid fa-vector-square', color: '#2F6B50' },
   pressure: { label: 'Ανθρώπινη πίεση', short: 'Πίεση', icon: 'fa-solid fa-shoe-prints', color: '#C0392B' },
   lilies: { label: 'Ομάδα κρινάκι', short: 'Κρινάκια', icon: 'fa-solid fa-spa', color: '#D4A017' },
   invasive: { label: 'Εισβλητικό φυτό', short: 'Εισβλητικό', icon: 'fa-solid fa-ban', color: '#7B3FA0' },
@@ -32,8 +32,8 @@ export const KINDS = {
 export const MODES = {
   protocol: { label: 'Πλήρες πρωτόκολλο', short: 'διατομή', icon: 'fa-solid fa-route' },
   plots: { label: 'Πλαίσια έρευνας', short: 'πλαίσια', icon: 'fa-solid fa-border-all' },
-  // Μόνο στη lite: σύντομη διατομή με στάσεις και ένα quadrat στη θίνη.
-  focus: { label: 'Εστίαση στο quadrat', short: 'εστίαση', icon: 'fa-solid fa-crosshairs' },
+  // Μόνο στη lite: σύντομη διατομή με στάσεις και ένα τετράγωνο πλαίσιο στη θίνη.
+  focus: { label: 'Εστίαση σε τετράγωνο πλαίσιο', short: 'εστίαση', icon: 'fa-solid fa-crosshairs' },
 };
 
 // Σειρά κουμπιών στην οθόνη «Καταγραφή».
