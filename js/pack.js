@@ -2,10 +2,10 @@
 import { dbGetAll, dbPutMany, getSetting } from './db.js';
 import {
   assignPhotoNames, buildRows, toCsv, toMyMapsCsv, toGeoJson, toKml, readmeText, exportBaseName,
-  pinnedName, pinLabel, pointName,
+  pinnedName, pinLabel, pointName, gridName, hasQuad,
 } from './rows.js';
 import { POINT_COLUMNS, TRANSECT_COLUMNS, APP_VERSION } from './schema.js';
-import { pinnedImage } from './photos.js';
+import { pinnedImage, gridImage } from './photos.js';
 
 // Για κάθε κάτοψη με πινέζες: φτιάχνει την εικόνα «…_πινέζες.jpg» μέσα στο zip.
 async function addPinnedImages(zip, data, names) {
@@ -13,9 +13,18 @@ async function addPinnedImages(zip, data, names) {
   const tById = new Map(data.transects.map((t) => [t.id, t]));
   for (const p of data.points) {
     const ph = p.topPhotoId && phById.get(p.topPhotoId);
-    if (!ph || !(p.pins || []).length || !names.get(ph.id)) continue;
+    if (!ph || !names.get(ph.id)) continue;
     const t = tById.get(p.transectId) || {};
     const title = `${pointName(p)} · ${t.team || ''} · ${t.beach || ''}`.replace(/( · )+$/, '');
+    if (hasQuad(p)) {
+      try {
+        zip.file(`photos/${gridName(names.get(ph.id))}`, await gridImage(ph.blob, p.quad, title, !!p.gridDark), { compression: 'STORE' });
+      } catch (e) {
+        console.error(e);
+        throw new Error(`Η κάτοψη «${pointName(p)}» με πλέγμα δεν φτιάχτηκε: ${e.message}`);
+      }
+    }
+    if (!(p.pins || []).length) continue;
     try {
       const blob = await pinnedImage(ph.blob, p.pins, p.pins.map(pinLabel), title);
       zip.file(`photos/${pinnedName(names.get(ph.id))}`, blob, { compression: 'STORE' });

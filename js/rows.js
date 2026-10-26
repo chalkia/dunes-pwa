@@ -1,7 +1,7 @@
 // Μετατροπή των δεδομένων σε γραμμές, CSV, GeoJSON και KML. Καθαρές συναρτήσεις, χωρίς DOM.
 // Έτσι δοκιμάζονται και στο Node (tools/check_columns.mjs).
 import {
-  KINDS, PRESSURES, PHOTO_SUBJECTS, SPECIES, CRITERIA, HEALTH_BANDS, POINT_COLUMNS, TRANSECT_COLUMNS, SRC_LABEL, MODES, APP_NAME,
+  KINDS, PRESSURES, PHOTO_SUBJECTS, SPECIES, CRITERIA, HEALTH_BANDS, POINT_COLUMNS, TRANSECT_COLUMNS, SRC_LABEL, MODES, APP_NAME, LEVELS,
 } from './schema.js';
 import { effectivePos, hasLatLon, toNum } from './geo.js';
 import { areaGeometry } from './area.js';
@@ -40,6 +40,13 @@ export function pinnedName(topName) {
   return topName.replace(/\.jpg$/i, '_πινέζες.jpg');
 }
 
+// Κάτοψη με το πλέγμα 10×10 στις 4 γωνίες του πλαισίου (lite, φτιάχνεται στην εξαγωγή).
+export function gridName(topName) {
+  return topName.replace(/\.jpg$/i, '_πλέγμα.jpg');
+}
+export const hasQuad = (p) => Array.isArray(p.quad) && p.quad.length === 4;
+const levelById = Object.fromEntries(LEVELS.map((l) => [l.id, l]));
+
 export function pointName(p) {
   switch (p.kind) {
     case 'quadrat': return isPlot(p) ? `Πλαίσιο ${p.plot}` : `Τετράγωνο ${blank(p.dist_m)} μ.`;
@@ -49,6 +56,7 @@ export function pointName(p) {
     case 'unknown': return `Άγνωστο φυτό ${blank(p.seq)}`.trim();
     case 'zone': return `Ζώνη ${blank(p.zone)} ξεκινά${p.dist_m !== null && p.dist_m !== undefined ? ` στα ${p.dist_m} μ.` : ''}`;
     case 'photo': return (subjectById[p.subject] || subjectById.other).label;
+    case 'stop': return `Στάση ${blank(p.letter)}${p.dist_m !== null && p.dist_m !== undefined ? ` (${p.dist_m} μ.)` : ''}`;
     default: return KINDS[p.kind] ? KINDS[p.kind].label : String(p.kind);
   }
 }
@@ -89,6 +97,7 @@ function photoLabel(p) {
     case 'invasive': return 'εισβλητικό';
     case 'zone': return `ζώνη${blank(p.zone)}`;
     case 'photo': return (subjectById[p.subject] || subjectById.other).short;
+    case 'stop': return `στάση${blank(p.letter)}`;
     default: return String(p.kind);
   }
 }
@@ -140,6 +149,7 @@ export function pointRow(p, t, names) {
   const files = (p.photoIds || []).map((id) => names.get(id)).filter(Boolean);
   const top = p.topPhotoId && names.get(p.topPhotoId);
   if (top && (p.pins || []).length) files.unshift(pinnedName(top));
+  if (top && hasQuad(p)) files.unshift(gridName(top));
   return {
     id: p.id,
     team: blank(t.team),
@@ -162,6 +172,8 @@ export function pointRow(p, t, names) {
     pressure_type: p.kind === 'pressure' && pressureById[p.pressure_type] ? pressureById[p.pressure_type].label : '',
     plot: isPlot(p) ? Number(p.plot) : '',
     pins: pinsText(p),
+    level: levelById[p.level] ? levelById[p.level].label : '',
+    observe: blank(p.observe),
     comment: blank(p.comment),
     ...posFields(effectivePos(p, t)),
     photos: files.join(' | '),
@@ -193,6 +205,8 @@ function endRow(t, which) {
     pressure_type: '',
     plot: '',
     pins: '',
+    level: '',
+    observe: '',
     comment: '',
     ...posFields(hasLatLon(pos) ? { lat: Number(pos.lat), lon: Number(pos.lon), src: pos.src || 'map', acc: toNum(pos.acc) } : null),
     photos: '',
@@ -294,6 +308,8 @@ export function describeRow(r) {
   add('Πίεση', r.pressure_type);
   add('Πλαίσιο', r.plot);
   add('Φυτά στην κάτοψη', r.pins);
+  add('Φυτά', r.level);
+  add('Τι βλέπω / γιατί', r.observe);
   add('Σχόλιο', r.comment);
   add('Θέση', r.pos_source);
   return out;

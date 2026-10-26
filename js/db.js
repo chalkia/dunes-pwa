@@ -1,8 +1,14 @@
 // Αποθήκευση στη συσκευή (IndexedDB). Δουλεύει χωρίς σύνδεση.
 // Πίνακες: transects, points, photos (με blob), settings.
-const DB_NAME = 'dunes-pwa';
+// Η lite (φάκελος lite/) έχει δική της βάση: setDbName('ammothines-lite') πριν από την πρώτη χρήση.
+let DB_NAME = 'dunes-pwa';
 const DB_VERSION = 1;
 let dbPromise = null;
+
+export function setDbName(name) {
+  if (dbPromise) throw new Error('setDbName: η βάση έχει ήδη ανοίξει.');
+  DB_NAME = name;
+}
 
 function open() {
   if (!dbPromise) {

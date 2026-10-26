@@ -7,6 +7,7 @@
   "scripts": {
     "check": "node tools/check_all.mjs",
     "serve": "python3 -m http.server 8765",
-    "guide": "node tools/build_guide.mjs"
+    "guide": "node tools/build_guide.mjs",
+    "lite-catalog": "node tools/build_lite_catalog.mjs"
   }
 }

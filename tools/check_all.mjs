@@ -243,13 +243,124 @@ for (const f of jsFiles) {
   }
 }
 
+// 7. Lite (φάκελος lite/): ίδιοι φύλακες, με διαδρομές σχετικές με το lite/.
+{
+  const L = 'lite';
+  const liteJs = readdirSync(join(root, L, 'js')).filter((f) => f.endsWith('.js')).map((f) => `${L}/js/${f}`);
+  for (const f of liteJs) {
+    const r = spawnSync('node', ['--input-type=module', '--check'], { input: read(f), encoding: 'utf8' });
+    if (r.status !== 0) add('lite σύνταξη', `${f}: ${r.stderr.split('\n').slice(0, 4).join(' ')}`);
+  }
+  { const r = spawnSync('node', ['--check', join(root, L, 'sw.js')], { encoding: 'utf8' }); if (r.status !== 0) add('lite σύνταξη', `lite/sw.js: ${r.stderr.split('\n').slice(0, 3).join(' ')}`); }
+  // Εισαγωγές (και προς ../../js). Μαζεύουμε και όλα τα modules που χρειάζεται η lite.
+  const need = new Set();
+  const visit = (f) => {
+    if (need.has(f)) return;
+    need.add(f);
+    const src = read(f);
+    for (const m of src.matchAll(/import\s*\{([^}]*)\}\s*from\s*'(\.{1,2}\/[^']+)'/g)) {
+      const target = join(dirname(f), m[2]).replace(/\\/g, '/');
+      if (!existsSync(join(root, target))) { add('lite εισαγωγές', `${f}: λείπει το ${target}`); continue; }
+      const have = exportsOf(read(target));
+      m[1].split(',').map((x) => x.trim()).filter(Boolean).forEach((x) => {
+        const name = x.split(/\s+as\s+/)[0].trim();
+        if (!have.has(name)) add('lite εισαγωγές', `${f}: το ${name} δεν εξάγεται από ${target}`);
+      });
+      visit(target);
+    }
+  };
+  visit(`${L}/js/app.js`);
+  liteJs.forEach((f) => { if (!need.has(f)) add('lite', `το ${f} δεν το χρησιμοποιεί κανείς`); });
+  // Στοιχεία HTML.
+  const html = read(`${L}/index.html`);
+  const defined = new Set();
+  [html, ...liteJs.map(read)].forEach((x) => { for (const m of x.matchAll(/\bid=\\?["']([A-Za-z0-9_-]+)\\?["']/g)) defined.add(m[1]); });
+  for (const f of liteJs) {
+    const x = read(f);
+    for (const m of x.matchAll(/(?:getElementById|\$)\(\s*['"]([^'"]+)['"]\s*\)/g)) if (!defined.has(m[1])) add('lite στοιχεία HTML', `${f}: ζητά #${m[1]}`);
+  }
+  // Service worker της lite.
+  const sw = read(`${L}/sw.js`);
+  const list = [...(sw.match(/const SHELL = \[([\s\S]*?)\];/) || ['', ''])[1].matchAll(/'([^']+)'/g)].map((m) => m[1]);
+  const rel = (pth) => join(L, pth === './' ? 'index.html' : pth).replace(/\\/g, '/');
+  const inShell = new Set(list.map(rel));
+  list.forEach((pth) => { if (!existsSync(join(root, rel(pth)))) add('lite service worker', `το SHELL αναφέρει ${pth} που δεν υπάρχει`); });
+  need.forEach((f) => { if (!inShell.has(f)) add('lite service worker', `το ${f} λείπει από το SHELL της lite`); });
+  for (const m of html.matchAll(/(?:src|href)="([^"#:]+\.(?:js|css|webmanifest|svg|png))"/g)) {
+    const f = join(L, m[1]).replace(/\\/g, '/');
+    if (!existsSync(join(root, f))) add('lite index.html', `λείπει το ${m[1]}`);
+    else if (!inShell.has(f) && !m[1].startsWith('js/app.js')) add('lite service worker', `το ${m[1]} (index.html) λείπει από το SHELL`);
+  }
+  for (const css of ['../lib/fa/css/solid.min.css', '../lib/fa/css/regular.min.css']) {
+    for (const m of read(join(L, css)).matchAll(/url\(\.\.\/webfonts\/([^)]+\.woff2)\)/g)) {
+      if (!sw.includes(`'../lib/fa/webfonts/${m[1]}'`)) add('lite service worker', `η γραμματοσειρά ${m[1]} λείπει από το SHELL`);
+    }
+  }
+  const tl = sw.match(/const TILE_CACHE = '([^']+)'/);
+  const tm = read('js/map.js').match(/export const TILE_CACHE = '([^']+)'/);
+  if (!tl || !tm || tl[1] !== tm[1]) add('lite service worker', 'το TILE_CACHE της lite διαφέρει από το js/map.js (οι χάρτες δεν θα είναι κοινοί)');
+  const pc1 = (sw.match(/const PLANTS_CACHE = '([^']+)'/) || [])[1];
+  const cat = read(`${L}/js/catalog.js`);
+  const pc2 = (cat.match(/export const PLANTS_CACHE = '([^']+)'/) || [])[1];
+  if (!pc1 || pc1 !== pc2) add('lite κατάλογος', 'το PLANTS_CACHE διαφέρει ανάμεσα σε lite/sw.js και lite/js/catalog.js. Τρέξε: npm run lite-catalog');
+  if (!/k\.startsWith\('lite-shell-'\)/.test(sw) || /keys\.filter\(\(k\) => k !== APP_CACHE/.test(sw)) add('lite service worker', 'το activate πρέπει να σβήνει μόνο μνήμες lite-*');
+  if (!/k\.startsWith\('dunes-shell-'\)/.test(read('sw.js'))) add('service worker', 'το activate της πλήρους πρέπει να σβήνει μόνο μνήμες dunes-shell-* (αλλιώς σβήνει τη lite)');
+  // Κατάλογος: κάθε φωτογραφία υπάρχει, οι μικρογραφίες είναι στο SHELL, τα είδη υπάρχουν στο SPECIES.
+  const spBlock = (read('js/schema.js').match(/export const SPECIES = \[([\s\S]*?)\n\];/) || [])[1] || '';
+  const spIds = new Set([...spBlock.matchAll(/\{ id: '([a-z]+)', name:/g)].map((m) => m[1]));
+  const CATALOG = JSON.parse((cat.match(/export const CATALOG = (\[[\s\S]*?\]);\n/) || [])[1] || '[]');
+  if (!CATALOG.length) add('lite κατάλογος', 'το CATALOG είναι άδειο');
+  const cfg = JSON.parse(read(`${L}/plants/species.json`));
+  if (cfg.species.map((x) => `${x.id}:${x.photos.length}`).join() !== CATALOG.map((x) => `${x.id}:${x.photos.length}`).join()) add('lite κατάλογος', 'το catalog.js δεν ταιριάζει με το lite/plants/species.json. Τρέξε: npm run lite-catalog');
+  for (const sp of CATALOG) {
+    if (!spIds.has(sp.id)) add('lite κατάλογος', `το είδος ${sp.id} δεν υπάρχει στο SPECIES`);
+    for (const ph of sp.photos) {
+      const big = `${L}/plants/${sp.dir}/${ph.n}.webp`;
+      const th = `${L}/plants/${sp.dir}/${ph.n}_t.webp`;
+      if (!existsSync(join(root, big))) add('lite κατάλογος', `λείπει το ${big}`);
+      if (!existsSync(join(root, th))) add('lite κατάλογος', `λείπει το ${th}`);
+      if (!inShell.has(th)) add('lite κατάλογος', `${th} λείπει από το SHELL`);
+      if (!ph.by || !ph.lic) add('lite κατάλογος', `${big}: χωρίς δημιουργό ή άδεια`);
+    }
+  }
+  const man = JSON.parse(read(`${L}/manifest.webmanifest`));
+  man.icons.forEach((i) => { if (!existsSync(join(root, L, i.src))) add('lite manifest', `λείπει το εικονίδιο ${i.src}`); });
+  // Εικονίδια: μόνο Font Awesome.
+  const faCss = read('lib/fa/css/fontawesome.min.css');
+  const known = new Set([...faCss.matchAll(/\.fa-([a-z0-9-]+):(?::)?before/g)].map((m) => m[1]));
+  const mods = new Set(['solid', 'regular']);
+  const emoji = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{25A0}-\u{25FF}\u{2300}-\u{23FF}\u{21B0}-\u{21FF}\u{2195}-\u{21AF}\u{FF0B}\u{FE0F}]/u;
+  for (const f of [`${L}/index.html`, ...liteJs.filter((x) => !x.endsWith('catalog.js'))]) {
+    const x = read(f);
+    x.split('\n').forEach((line, i) => { if (!/^\s*\/\//.test(line) && emoji.test(line)) add('lite εικονίδια', `${f}:${i + 1}: σύμβολο αντί για Font Awesome`); });
+    [...[...x.matchAll(/\bfa-([a-z0-9-]+)/g)].map((m) => m[1]), ...[...x.matchAll(/\bic\('([a-z0-9-]+)'/g)].map((m) => m[1])]
+      .filter((n) => !mods.has(n) && !known.has(n)).forEach((n) => add('lite εικονίδια', `${f}: το fa-${n} δεν υπάρχει`));
+  }
+  // Πλέγμα: η ομογραφία πρέπει να στέλνει τις γωνίες του τετραγώνου ακριβώς στις 4 γωνίες.
+  const url = (pth) => pathToFileURL(join(root, pth)).href;
+  const photos = await import(url('js/photos.js'));
+  const quad = [[0.1, 0.2], [0.8, 0.15], [0.9, 0.85], [0.15, 0.9]];
+  const H = photos.homography(quad);
+  [[0, 0], [1, 0], [1, 1], [0, 1]].forEach(([x, y], i) => {
+    const [u, v] = H(x, y);
+    if (Math.abs(u - quad[i][0]) > 1e-9 || Math.abs(v - quad[i][1]) > 1e-9) add('lite πλέγμα', `η γωνία ${i + 1} του πλέγματος δεν πέφτει στη θέση της`);
+  });
+  const q = await import(url(`${L}/js/quadrat.js`)).catch((e) => { add('lite πλέγμα', `το quadrat.js δεν φορτώνει: ${e.message}`); return null; });
+  if (q) {
+    const o = q.orderCorners([[0.9, 0.85], [0.1, 0.2], [0.15, 0.9], [0.8, 0.15]]);
+    if (JSON.stringify(o) !== JSON.stringify(quad)) add('lite πλέγμα', `λάθος σειρά γωνιών: ${JSON.stringify(o)}`);
+  }
+  // Δημοσίευση.
+  if (!/cp -r [^\n]*\blite\b[^\n]*_site\//.test(read('.github/workflows/pages.yml'))) add('δημοσίευση', 'το pages.yml δεν αντιγράφει τον φάκελο lite');
+}
+
 // 6. ESLint no-undef (αν έχει εγκατασταθεί στο tools/).
 {
   // Τρέχουμε το ESLint με το node (δουλεύει σε Windows, Mac, Linux). Το .bin/eslint δεν τρέχει στα Windows.
   const bin = join(root, 'tools/node_modules/eslint/bin/eslint.js');
   if (!existsSync(bin)) add('μεταβλητές', 'δεν υπάρχει ESLint. Τρέξε: cd tools && npm install');
   else {
-    const r = spawnSync(process.execPath, [bin, '--config', 'tools/eslint.config.mjs', 'js', 'sw.js'], { cwd: root, encoding: 'utf8' });
+    const r = spawnSync(process.execPath, [bin, '--config', 'tools/eslint.config.mjs', 'js', 'sw.js', 'lite/js', 'lite/sw.js'], { cwd: root, encoding: 'utf8' });
     if (r.error) add('μεταβλητές', `ESLint δεν ξεκίνησε: ${r.error.message}`);
     else if (r.status !== 0) add('μεταβλητές', `ESLint (κωδικός ${r.status}):\n${r.stdout || ''}${r.stderr || ''}`);
   }

@@ -89,3 +89,91 @@ export async function pinnedImage(blob, pins, labels, title) {
     c.toBlob((b) => (b ? resolve(b) : reject(new Error('Η κάτοψη με πινέζες δεν φτιάχτηκε.'))), 'image/jpeg', 0.88);
   });
 }
+
+// ---- Πλέγμα 10×10 πάνω στο πλαίσιο 1×1 μ. (lite) ----
+// quad: 4 γωνίες [x, y] από 0 έως 1, με σειρά πάνω-αριστερά, πάνω-δεξιά, κάτω-δεξιά, κάτω-αριστερά.
+// Η φωτογραφία σπάνια είναι τέλεια από πάνω: χρησιμοποιούμε προβολικό μετασχηματισμό (ομογραφία)
+// από το τετράγωνο [0,1]×[0,1] στις 4 γωνίες, ώστε οι γραμμές να «κάθονται» πάνω στο πλαίσιο.
+export function homography(quad) {
+  const src = [[0, 0], [1, 0], [1, 1], [0, 1]];
+  const A = [];
+  const b = [];
+  for (let i = 0; i < 4; i += 1) {
+    const [x, y] = src[i];
+    const [u, v] = quad[i];
+    A.push([x, y, 1, 0, 0, 0, -u * x, -u * y]); b.push(u);
+    A.push([0, 0, 0, x, y, 1, -v * x, -v * y]); b.push(v);
+  }
+  // Gauss με μερική οδήγηση.
+  const n = 8;
+  for (let c = 0; c < n; c += 1) {
+    let piv = c;
+    for (let r = c + 1; r < n; r += 1) if (Math.abs(A[r][c]) > Math.abs(A[piv][c])) piv = r;
+    if (Math.abs(A[piv][c]) < 1e-12) throw new Error('Οι 4 γωνίες δεν σχηματίζουν τετράπλευρο.');
+    [A[c], A[piv]] = [A[piv], A[c]];
+    [b[c], b[piv]] = [b[piv], b[c]];
+    for (let r = 0; r < n; r += 1) {
+      if (r === c) continue;
+      const f = A[r][c] / A[c][c];
+      for (let k = c; k < n; k += 1) A[r][k] -= f * A[c][k];
+      b[r] -= f * b[c];
+    }
+  }
+  const h = b.map((v, i) => v / A[i][i]);
+  return (x, y) => {
+    const w = h[6] * x + h[7] * y + 1;
+    return [(h[0] * x + h[1] * y + h[2]) / w, (h[3] * x + h[4] * y + h[5]) / w];
+  };
+}
+
+// Σχεδιάζει το πλέγμα στο ctx. w, h: μέγεθος εικόνας σε pixel. dark: σκούρες γραμμές (για ανοιχτή άμμο).
+export function drawGrid(ctx, quad, w, h, dark = false) {
+  const H = homography(quad);
+  const P = (x, y) => { const [u, v] = H(x, y); return [u * w, v * h]; };
+  const line = (x0, y0, x1, y1, thick) => {
+    ctx.beginPath();
+    const steps = 20;
+    for (let s = 0; s <= steps; s += 1) {
+      const t = s / steps;
+      const [px, py] = P(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t);
+      if (s === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.lineWidth = thick;
+    ctx.stroke();
+  };
+  const base = Math.max(1, Math.min(w, h) / 500);
+  ctx.save();
+  ctx.lineCap = 'round';
+  for (let i = 0; i <= 10; i += 1) {
+    const major = i % 5 === 0;
+    ctx.strokeStyle = dark ? (major ? 'rgba(20,20,20,0.95)' : 'rgba(20,20,20,0.6)') : (major ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.65)');
+    const t = major ? base * 3 : base * 1.3;
+    line(i / 10, 0, i / 10, 1, t);
+    line(0, i / 10, 1, i / 10, t);
+  }
+  ctx.restore();
+}
+
+// Κάτοψη + πλέγμα + τίτλος (για την εξαγωγή «…_πλέγμα.jpg»).
+export async function gridImage(blob, quad, title, dark = false) {
+  const src = await createImageBitmap(blob);
+  const w = src.width;
+  const h = src.height;
+  const band = Math.max(40, Math.round(h * 0.06));
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h + band;
+  const g = c.getContext('2d');
+  g.fillStyle = '#fff';
+  g.fillRect(0, 0, c.width, c.height);
+  g.drawImage(src, 0, 0);
+  if (typeof src.close === 'function') src.close();
+  drawGrid(g, quad, w, h, dark);
+  g.fillStyle = '#213236';
+  g.font = `bold ${Math.round(band * 0.45)}px sans-serif`;
+  g.textBaseline = 'middle';
+  g.fillText(`${title} · πλέγμα 10×10: κάθε κελί = 1%`, band * 0.4, h + band / 2, w - band);
+  return new Promise((resolve, reject) => {
+    c.toBlob((b) => (b ? resolve(b) : reject(new Error('Η κάτοψη με πλέγμα δεν φτιάχτηκε.'))), 'image/jpeg', 0.88);
+  });
+}

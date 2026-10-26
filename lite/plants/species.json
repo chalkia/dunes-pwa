@@ -1,0 +1,418 @@
+{
+  "_οδηγίες": [
+    "Κατάλογος φυτών της lite. Οι φωτογραφίες έρχονται από το ../plants_photos_hires.",
+    "photos: ποια αρχεία και με ποια σειρά, με μια σύντομη λεζάντα. Η 1η είναι η εικόνα της λίστας.",
+    "zones: σε ποιες ζώνες (0–4) το βρίσκουμε συνήθως. Μόνο ενδεικτικό, για το φίλτρο.",
+    "Μετά από αλλαγή: npm run lite-catalog και μετά npm run check"
+  ],
+  "species": [
+    {
+      "id": "krinaki",
+      "folder": "Pancratium_maritimum",
+      "name": "Κρινάκι της θάλασσας",
+      "latin": "Pancratium maritimum",
+      "note": "Άσπρο μεγάλο λουλούδι με μακριά πέταλα. Φυτρώνει στην κινούμενη άμμο. Ανθίζει αργά το καλοκαίρι. Προστατευόμενο: μην το κόβεις.",
+      "zones": [
+        1,
+        2
+      ],
+      "photos": [
+        {
+          "file": "photo_03.jpg",
+          "caption": "Ομάδα φυτών κοντά στη θάλασσα"
+        },
+        {
+          "file": "photo_10.jpg",
+          "caption": "Ένα φυτό στην άμμο"
+        },
+        {
+          "file": "photo_04.jpg",
+          "caption": "Λουλούδι και φύλλα"
+        },
+        {
+          "file": "photo_02.jpg",
+          "caption": "Λουλούδι από το πλάι"
+        },
+        {
+          "file": "photo_01.jpg",
+          "caption": "Λεπτομέρεια: στήμονας"
+        },
+        {
+          "file": "photo_07.jpg",
+          "caption": "Μέγεθος λουλουδιού δίπλα στο χέρι"
+        }
+      ]
+    },
+    {
+      "id": "galanagatho",
+      "folder": "Eryngium_maritimum",
+      "name": "Γαλανάγκαθο",
+      "latin": "Eryngium maritimum",
+      "note": "Γκριζογάλανα αγκαθωτά φύλλα. Μπλε-πράσινα κεφάλια λουλουδιών. Το φθινόπωρο φαίνεται ξερό και καφέ.",
+      "zones": [
+        1,
+        2
+      ],
+      "photos": [
+        {
+          "file": "photo_02.jpg",
+          "caption": "Όλο το φυτό με τα κεφάλια"
+        },
+        {
+          "file": "photo_04.jpg",
+          "caption": "Αγκαθωτό φύλλο και κεφάλι"
+        },
+        {
+          "file": "photo_06.jpg",
+          "caption": "Στην άμμο, μισό ξερό"
+        },
+        {
+          "file": "photo_05.jpg",
+          "caption": "Το φθινόπωρο: καφέ και ξερό"
+        },
+        {
+          "file": "photo_09.jpg",
+          "caption": "Ξερά φυτά δίπλα σε ξαπλώστρες"
+        },
+        {
+          "file": "photo_01.jpg",
+          "caption": "Επισκέπτης: μέλισσα"
+        }
+      ]
+    },
+    {
+      "id": "galatsida",
+      "folder": "Euphorbia_paralias",
+      "name": "Γαλατσίδα της παραλίας",
+      "latin": "Euphorbia paralias",
+      "note": "Όρθιο φυτό με πυκνά γκριζοπράσινα φύλλα. Αν κόψεις το φύλλο, βγαίνει άσπρο γάλα. Προσοχή: ερεθίζει το δέρμα.",
+      "zones": [
+        1,
+        2
+      ],
+      "photos": [
+        {
+          "file": "photo_04.jpg",
+          "caption": "Ομάδα φυτών στη θίνη"
+        },
+        {
+          "file": "photo_05.jpg",
+          "caption": "Θάμνος στη θίνη"
+        },
+        {
+          "file": "photo_01.jpg",
+          "caption": "Βλαστός στο χέρι: πυκνά φύλλα"
+        },
+        {
+          "file": "photo_08.jpg",
+          "caption": "Κλαδιά στην άμμο"
+        },
+        {
+          "file": "photo_09.jpg",
+          "caption": "Άνθη και καρποί από κοντά"
+        },
+        {
+          "file": "photo_10.jpg",
+          "caption": "Η κορυφή του βλαστού"
+        }
+      ]
+    },
+    {
+      "id": "kalystegia",
+      "folder": "Calystegia_soldanella",
+      "name": "Καλυστέγια / περικοκλάδα",
+      "latin": "Calystegia soldanella",
+      "note": "Έρπουσα. Φύλλα σαν παχιά καρδιά. Λουλούδι σαν ροζ χωνί.",
+      "zones": [
+        1,
+        2
+      ],
+      "photos": [
+        {
+          "file": "photo_02.jpg",
+          "caption": "Φύλλα σαν καρδιά πάνω στην άμμο"
+        },
+        {
+          "file": "photo_03.jpg",
+          "caption": "Λουλούδι από πάνω"
+        },
+        {
+          "file": "photo_04.jpg",
+          "caption": "Λουλούδι σαν χωνί"
+        },
+        {
+          "file": "photo_05.jpg",
+          "caption": "Φύλλα από κοντά"
+        },
+        {
+          "file": "photo_06.jpg",
+          "caption": "Έρπουσα με μπουμπούκια"
+        },
+        {
+          "file": "photo_08.jpg",
+          "caption": "Μπουμπούκι από κοντά"
+        }
+      ]
+    },
+    {
+      "id": "kakili",
+      "folder": "Cakile_maritima",
+      "name": "Κακίλη / ρόκα θάλασσας",
+      "latin": "Cakile maritima",
+      "note": "Σαρκώδη φύλλα. Μικρά ανοιχτόμωβα ή άσπρα λουλούδια με 4 πέταλα. Φυτρώνει στην πρώτη ζώνη, κοντά στη θάλασσα.",
+      "zones": [
+        0,
+        1
+      ],
+      "photos": [
+        {
+          "file": "photo_10.jpg",
+          "caption": "Φυτά στην πρώτη ζώνη της θίνης"
+        },
+        {
+          "file": "photo_04.jpg",
+          "caption": "Όλο το φυτό"
+        },
+        {
+          "file": "photo_09.jpg",
+          "caption": "Φυτό στην άμμο με ξύλα"
+        },
+        {
+          "file": "photo_06.jpg",
+          "caption": "Λουλούδια από κοντά"
+        },
+        {
+          "file": "photo_07.jpg",
+          "caption": "Βλαστοί με λουλούδια"
+        },
+        {
+          "file": "photo_05.jpg",
+          "caption": "Λουλούδια στην άμμο"
+        }
+      ]
+    },
+    {
+      "id": "midiki",
+      "folder": "Medicago_marina",
+      "name": "Μηδική της άμμου",
+      "latin": "Medicago marina",
+      "note": "Χαμηλή, απλώνεται στην άμμο. Ασημένια χνουδωτά φύλλα σε τριάδες. Κίτρινα λουλούδια. Ο καρπός είναι σπειροειδής, σαν μικρό σαλιγκάρι.",
+      "zones": [
+        1,
+        2
+      ],
+      "photos": [
+        {
+          "file": "photo_06.jpg",
+          "caption": "Θάμνος στη θίνη"
+        },
+        {
+          "file": "photo_04.jpg",
+          "caption": "Απλώνεται στην άμμο"
+        },
+        {
+          "file": "photo_03.jpg",
+          "caption": "Λουλούδι από κοντά"
+        },
+        {
+          "file": "photo_01.jpg",
+          "caption": "Πολλά λουλούδια μαζί"
+        },
+        {
+          "file": "photo_08.jpg",
+          "caption": "Φύλλα και λουλούδια"
+        },
+        {
+          "file": "photo_07.jpg",
+          "caption": "Ασημένια φύλλα από κοντά"
+        }
+      ]
+    },
+    {
+      "id": "mathiola",
+      "folder": "Matthiola_tricuspidata",
+      "name": "Μαθιόλα της άμμου",
+      "latin": "Matthiola tricuspidata",
+      "note": "Χνουδωτά γκρίζα φύλλα. Λουλούδια ροζ-μοβ με 4 πέταλα, σαν σταυρός.",
+      "zones": [
+        2,
+        3
+      ],
+      "photos": [
+        {
+          "file": "photo_06.jpg",
+          "caption": "Μεγάλη τούφα"
+        },
+        {
+          "file": "photo_04.jpg",
+          "caption": "Γκρίζα χνουδωτά φύλλα"
+        },
+        {
+          "file": "photo_01.jpg",
+          "caption": "Λουλούδια από κοντά"
+        },
+        {
+          "file": "photo_09.jpg",
+          "caption": "Αραιό φυτό στην άμμο"
+        },
+        {
+          "file": "photo_03.jpg",
+          "caption": "Στην ακτή, δίπλα στη θάλασσα"
+        },
+        {
+          "file": "photo_08.jpg",
+          "caption": "Λουλούδια στην άμμο"
+        }
+      ]
+    },
+    {
+      "id": "otanthos",
+      "folder": "Otanthus_maritimus",
+      "name": "Ώτανθος / βαμβακιά",
+      "latin": "Otanthus maritimus",
+      "note": "Άσπρος, σαν βαμβάκι. Μικρά κίτρινα κεφαλάκια. Χτίζει μικρούς θάμνους στην άμμο.",
+      "zones": [
+        1,
+        2
+      ],
+      "photos": [
+        {
+          "file": "photo_01.jpg",
+          "caption": "Τούφες στην παραλία"
+        },
+        {
+          "file": "photo_04.jpg",
+          "caption": "Άσπρος θάμνος στη θίνη"
+        },
+        {
+          "file": "photo_05.jpg",
+          "caption": "Κίτρινα κεφαλάκια"
+        },
+        {
+          "file": "photo_09.jpg",
+          "caption": "Χνουδωτά φύλλα από κοντά"
+        },
+        {
+          "file": "photo_10.jpg",
+          "caption": "Στην άμμο"
+        },
+        {
+          "file": "photo_06.jpg",
+          "caption": "Βλαστοί με άνθη"
+        }
+      ]
+    },
+    {
+      "id": "thalassokedro",
+      "folder": "Juniperus_macrocarpa",
+      "name": "Θαλασσόκεδρο",
+      "latin": "Juniperus macrocarpa",
+      "note": "Αειθαλής θάμνος ή δέντρο με αγκαθωτές βελόνες. Μεγάλοι καρποί, πρώτα πράσινοι και μετά κόκκινο-καφέ. Προστατευόμενο.",
+      "zones": [
+        3,
+        4
+      ],
+      "photos": [
+        {
+          "file": "photo_05.jpg",
+          "caption": "Θάμνοι στη θίνη"
+        },
+        {
+          "file": "photo_03.jpg",
+          "caption": "Νεαρό δέντρο στην άμμο"
+        },
+        {
+          "file": "photo_02.jpg",
+          "caption": "Βελόνες και καρποί από πάνω"
+        },
+        {
+          "file": "photo_06.jpg",
+          "caption": "Ώριμοι καρποί"
+        },
+        {
+          "file": "photo_07.jpg",
+          "caption": "Πράσινοι καρποί"
+        },
+        {
+          "file": "photo_04.jpg",
+          "caption": "Κλαδί από κοντά"
+        }
+      ]
+    },
+    {
+      "id": "kentavria",
+      "folder": "Centaurea_spinosa",
+      "name": "Κενταύρια η αγκαθωτή",
+      "latin": "Centaurea spinosa",
+      "note": "Στρογγυλός αγκαθωτός θάμνος σαν μαξιλάρι. Άσπρα-γκρίζα κλαδιά.",
+      "zones": [
+        3,
+        4
+      ],
+      "photos": [
+        {
+          "file": "photo_02.jpg",
+          "caption": "Μαξιλάρι δίπλα στη θάλασσα"
+        },
+        {
+          "file": "photo_05.jpg",
+          "caption": "Μαξιλάρια στα βράχια"
+        },
+        {
+          "file": "photo_04.jpg",
+          "caption": "Αγκαθωτά κλαδιά από κοντά"
+        },
+        {
+          "file": "photo_01.jpg",
+          "caption": "Ξερά άνθη"
+        },
+        {
+          "file": "photo_06.jpg",
+          "caption": "Πράσινη μορφή"
+        },
+        {
+          "file": "photo_09.jpg",
+          "caption": "Μαξιλάρι στα χόρτα"
+        }
+      ]
+    },
+    {
+      "id": "carpobrotus",
+      "folder": "Carpobrotus_edulis",
+      "name": "Χουζούρι (αγιόκλημα της παραλίας)",
+      "latin": "Carpobrotus edulis",
+      "note": "ΕΙΣΒΛΗΤΙΚΟ. Παχιά τριγωνικά φύλλα σαν δάχτυλα. Μεγάλα κίτρινα, άσπρα ή ροζ λουλούδια. Σκεπάζει την άμμο σαν χαλί και πνίγει τα ντόπια φυτά. Μην το ξεριζώνεις μόνος σου.",
+      "zones": [
+        2,
+        3,
+        4
+      ],
+      "photos": [
+        {
+          "file": "photo_06.jpg",
+          "caption": "Χαλί με λουλούδια"
+        },
+        {
+          "file": "photo_01.jpg",
+          "caption": "Σκεπάζει την ακτή"
+        },
+        {
+          "file": "photo_05.jpg",
+          "caption": "Τριγωνικό φύλλο σε τομή"
+        },
+        {
+          "file": "photo_08.jpg",
+          "caption": "Άσπρα και κίτρινα λουλούδια"
+        },
+        {
+          "file": "photo_07.jpg",
+          "caption": "Κίτρινο λουλούδι από κοντά"
+        },
+        {
+          "file": "photo_09.jpg",
+          "caption": "Κόκκινα φύλλα (ξηρασία)"
+        }
+      ]
+    }
+  ]
+}

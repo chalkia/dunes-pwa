@@ -21,6 +21,7 @@ export const KINDS = {
   unknown: { label: 'Άγνωστο φυτό', short: 'Άγνωστο', icon: 'fa-solid fa-circle-question', color: '#B8660B' },
   zone: { label: 'Αλλαγή ζώνης', short: 'Ζώνη', icon: 'fa-solid fa-water', color: '#1F6B91' },
   photo: { label: 'Φωτογραφία / σημείωση', short: 'Φωτό', icon: 'fa-solid fa-camera', color: '#5A5A5A' },
+  stop: { label: 'Στάση στη γραμμή', short: 'Στάση', icon: 'fa-solid fa-flag', color: '#0E7C86' },
   start: { label: 'Αρχή διατομής (θάλασσα)', short: 'Αρχή', icon: 'fa-solid fa-water', color: '#1F6B91' },
   end: { label: 'Τέλος διατομής (ενδοχώρα)', short: 'Τέλος', icon: 'fa-solid fa-tree', color: '#1F6B91' },
 };
@@ -31,13 +32,23 @@ export const KINDS = {
 export const MODES = {
   protocol: { label: 'Πλήρες πρωτόκολλο', short: 'διατομή', icon: 'fa-solid fa-route' },
   plots: { label: 'Πλαίσια έρευνας', short: 'πλαίσια', icon: 'fa-solid fa-border-all' },
+  // Μόνο στη lite: σύντομη διατομή με στάσεις και ένα quadrat στη θίνη.
+  focus: { label: 'Εστίαση στο quadrat', short: 'εστίαση', icon: 'fa-solid fa-crosshairs' },
 };
 
 // Σειρά κουμπιών στην οθόνη «Καταγραφή».
 export const NEW_KINDS = {
   protocol: ['quadrat', 'pressure', 'lilies', 'invasive', 'unknown', 'zone', 'photo'],
   plots: ['quadrat', 'pressure', 'lilies', 'invasive', 'unknown', 'photo'],
+  focus: ['quadrat', 'pressure', 'lilies', 'invasive', 'unknown', 'zone', 'photo'],
 };
+
+// Στάσεις της lite: πόσα φυτά βλέπουμε.
+export const LEVELS = [
+  { id: 'few', label: 'λίγα' },
+  { id: 'some', label: 'αρκετά' },
+  { id: 'many', label: 'πολλά' },
+];
 
 // Πιέσεις (πρωτόκολλο, Βήμα Ε και Φύλλο 3).
 export const PRESSURES = [
@@ -129,6 +140,8 @@ export const POINT_COLUMNS = [
   { key: 'pressure_type', label: 'Είδος πίεσης' },
   { key: 'plot', label: 'Πλαίσιο αρ.' },
   { key: 'pins', label: 'Πινέζες φυτών (κάτοψη)' },
+  { key: 'level', label: 'Φυτά (λίγα / αρκετά / πολλά)' },
+  { key: 'observe', label: 'Τι βλέπω / γιατί το ξεχώρισα' },
   { key: 'comment', label: 'Σχόλιο' },
   { key: 'lat', label: 'Γεωγραφικό πλάτος' },
   { key: 'lon', label: 'Γεωγραφικό μήκος' },

@@ -15,7 +15,7 @@ const common = {
 
 export default [
   {
-    files: ['js/**/*.js'],
+    files: ['js/**/*.js', 'lite/js/**/*.js'],
     languageOptions: {
       ecmaVersion: 2023,
       sourceType: 'module',
@@ -26,7 +26,7 @@ export default [
     rules: common,
   },
   {
-    files: ['sw.js'],
+    files: ['sw.js', 'lite/sw.js'],
     languageOptions: { ecmaVersion: 2023, sourceType: 'script', globals: { ...globals.serviceworker } },
     rules: common,
   },
