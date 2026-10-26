@@ -7,14 +7,14 @@
 .zchip { border-color: var(--zc); }
 .zchip.on { background: var(--zc); color: #213236; border-color: #213236; }
 
-/* Επάνω μπάρα: διακριτικά κουμπιά Ρύθμισης και Αποστολής */
-.top-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+/* Επάνω μπάρα: διακριτικά κουμπιά Info, Ρύθμισης και Αποστολής */
+.top-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .top-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   min-height: 38px;
-  padding: 0 12px;
+  padding: 0 11px;
   border: 1.5px solid rgba(255, 255, 255, 0.55);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.16);
@@ -31,18 +31,37 @@
   padding: 2px 6px;
   border-radius: 999px;
 }
-@media (max-width: 620px) {
+@media (max-width: 680px) {
   .top-btn span:not(.badge-cnt) { display: none; }
   .top-btn { padding: 0 10px; }
 }
 
-/* Μπάρα πορείας (Stepper 3 βημάτων) στην Έρευνα */
+/* Κάρτα παρακίνησης για μετάβαση στη Ρύθμιση */
+.prep-prompt {
+  max-width: 860px;
+  margin: 0 auto 14px;
+  padding: 16px 18px;
+  border-radius: 22px;
+  border: 3px solid var(--gold);
+  background: linear-gradient(135deg, #fff9e6, #fff);
+  box-shadow: 0 4px 0 rgba(242, 179, 61, 0.28);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.prep-prompt-text { flex: 1; min-width: 240px; }
+.prep-prompt-text h2 { margin: 0 0 4px; color: #8a5200; font-size: 19px; }
+.prep-prompt-text p { margin: 0; font-size: 15px; color: #4a3f2f; }
+
+/* Μπάρα πορείας (Stepper 4 βημάτων) στην Έρευνα */
 .stepper {
   max-width: 860px;
   margin: 0 auto 14px;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
   background: #fff;
   padding: 8px;
   border-radius: 20px;
@@ -53,27 +72,27 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   min-height: 52px;
-  padding: 6px 10px;
+  padding: 6px 8px;
   border: 2px solid transparent;
   border-radius: 14px;
   background: #f8f2e4;
   color: #5a5146;
-  font: 700 15px/1.2 system-ui, sans-serif;
+  font: 700 14px/1.2 system-ui, sans-serif;
   cursor: pointer;
   text-align: left;
 }
 .step-btn .step-num {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   background: #e2d4b5;
   color: #213236;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font: 700 14px var(--round);
+  font: 700 13px var(--round);
   flex-shrink: 0;
 }
 .step-btn.done .step-num { background: var(--green); color: #fff; }
@@ -84,8 +103,8 @@
   box-shadow: 0 3px 0 rgba(14, 124, 134, 0.28);
 }
 .step-btn.active .step-num { background: var(--gold); color: #213236; }
-@media (max-width: 560px) {
-  .step-btn { flex-direction: column; text-align: center; font-size: 13px; gap: 4px; padding: 6px 4px; }
+@media (max-width: 680px) {
+  .stepper { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* Κάρτες πλοήγησης επόμενου/προηγούμενου βήματος */
@@ -96,6 +115,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 /* Στάσεις (λειτουργία Β) */
@@ -254,13 +274,134 @@
 
 .x-mini { border: 0; background: none; color: inherit; padding: 0 0 0 6px; cursor: pointer; }
 
-/* Κουμπιά πινεζών και πλαισίου στον χάρτη */
-#pinBar { position: absolute; left: 10px; bottom: 24px; z-index: 1000; display: flex; flex-wrap: wrap; gap: 8px; max-width: calc(100% - 20px); }
-.pbtn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; width: 86px; height: 74px; border: 3px solid var(--kc); border-radius: 16px; background: #fff; color: var(--ink); font: 700 13px system-ui, sans-serif; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35); cursor: pointer; }
-.pbtn i { font-size: 24px; color: var(--kc); }
-.pbtn.pbtn-main { width: 104px; background: var(--green); color: #fff; border-color: #fff; }
-.pbtn.pbtn-main i { color: #fff; }
+/* Κουμπιά προσθήκης στον χάρτη (#pinBar) */
+#pinBar {
+  position: absolute;
+  left: 12px;
+  bottom: 20px;
+  z-index: 1000;
+  max-width: calc(100% - 24px);
+}
+.map-add-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.map-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 2.5px solid #fff;
+  background: var(--blue);
+  color: #fff;
+  font: 700 15px system-ui, sans-serif;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+}
+.map-add-btn.green { background: var(--green); }
+.pin-drawer-card {
+  background: rgba(255, 255, 255, 0.97);
+  border: 2px solid var(--blue);
+  border-radius: 20px;
+  padding: 12px 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+.pin-drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--blue);
+}
+.pin-drawer-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.pbtn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; width: 86px; height: 72px; border: 3px solid var(--kc); border-radius: 16px; background: #fff; color: var(--ink); font: 700 13px system-ui, sans-serif; cursor: pointer; }
+.pbtn i { font-size: 22px; color: var(--kc); }
 .placing #pinBar { display: none; }
+
+/* Παράθυρο Info (Πληροφορίες & Κρινάκι της θάλασσας) */
+#infoModal {
+  position: fixed;
+  inset: 0;
+  z-index: 3200;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+.info-card {
+  width: 100%;
+  max-width: 720px;
+  max-height: 92dvh;
+  overflow-y: auto;
+  background: var(--cream);
+  border-radius: 24px;
+  border: 3px solid var(--gold);
+  padding: 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+.info-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.info-top h2 { margin: 0; font-size: 22px; }
+.lily-hero {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  background: #fff;
+  border: 2px solid var(--gold);
+  border-radius: 18px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.lily-hero img {
+  width: 110px;
+  height: 110px;
+  border-radius: 14px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid var(--line);
+}
+.lily-hero h3 { margin: 0 0 4px; color: var(--blue); font-size: 18px; }
+.lily-hero p { margin: 0; font-size: 15px; line-height: 1.4; }
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.info-sec {
+  background: #fff;
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  padding: 12px;
+}
+.info-sec h3 { margin: 0 0 6px; font-size: 16px; color: var(--blue); }
+.info-sec p { margin: 0; font-size: 14px; line-height: 1.45; }
+.credits-box {
+  background: linear-gradient(135deg, #e6f5f6, #fff);
+  border: 2px solid var(--blue);
+  border-radius: 16px;
+  padding: 12px 14px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.credits-box p { margin: 4px 0; }
+@media (max-width: 640px) {
+  .info-grid { grid-template-columns: 1fr; }
+  .lily-hero { flex-direction: column; text-align: center; }
+}
 
 /* Αναδυόμενος Κατάλογος Φυτών (Σύντομη Αναφορά παντού) */
 #view-plants.overlay-open {

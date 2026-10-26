@@ -19,6 +19,7 @@
   <header id="topbar">
     <div id="topTitle"></div>
     <div class="top-actions">
+      <button id="btnInfoTop" class="top-btn" type="button" data-act="info-open" title="Πληροφορίες & Στόχος"><i class="fa-solid fa-circle-info"></i> <span>Info</span></button>
       <button id="btnPrepTop" class="top-btn" type="button" data-act="tab" data-tab="prep" title="Ρύθμιση ομάδας και περιοχής"><i class="fa-solid fa-sliders"></i> <span>Ρύθμιση</span></button>
       <button id="btnSendTop" class="top-btn" type="button" data-act="tab" data-tab="send" title="Αποστολή δεδομένων"><i class="fa-solid fa-paper-plane"></i> <span id="sendBadge">Αποστολή</span></button>
       <div id="netBadge" class="net"></div>
@@ -96,6 +97,10 @@
       <p id="scanText"></p>
       <button class="btn" type="button" data-act="scan-close">Κλείσιμο</button>
     </div>
+  </div>
+
+  <div id="infoModal" hidden>
+    <div id="infoCard" class="info-card"></div>
   </div>
 
   <div id="dialog" hidden>

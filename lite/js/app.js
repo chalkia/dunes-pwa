@@ -1,5 +1,5 @@
 // Αμμοθίνες lite. Εργαλείο πεδίου για μαθητές:
-// φωτογραφίες, κάτοψη τετραγώνου πλαισίου με πλέγμα 10×10, πινέζες στον χάρτη, γρήγορος κατάλογος φυτών.
+// φωτογραφίες, κάτοψη τετραγώνου πλαισίου με πλέγμα 10×10, πινέζες στον χάρτη, γρήγορος κατάλογος φυτών, κάρτα υγείας.
 // Κοινός κώδικας με την πλήρη εφαρμογή (φάκελος ../js). Δική της βάση δεδομένων.
 // Τα πακέτα ZIP είναι ίδια με της πλήρους: ανοίγουν και εκεί με «Εισαγωγή».
 import {
@@ -16,12 +16,12 @@ import {
   initMap, showMap, fitArea, setBase, getBaseName, refreshMarkers, startPlacing, finishPlacing, toggleLocate,
   BASEMAPS, tileStatus, downloadTiles, tilePlan, setMapArea,
 } from '../../js/map.js';
-import { pointName } from '../../js/rows.js';
+import { pointName, healthScore, byDistance } from '../../js/rows.js';
 import {
   collect, counts, buildPackage, buildKmz, buildCsv, exportBaseName, saveBlob, canShareFiles, shareBlob, importPackage,
 } from '../../js/pack.js';
 import {
-  KINDS, ZONES, PRESSURES, SPECIES, LEVELS, SRC_LABEL, MODES,
+  KINDS, ZONES, PRESSURES, SPECIES, LEVELS, SRC_LABEL, MODES, CRITERIA,
 } from '../../js/schema.js';
 import {
   CATALOG, PLANTS_CACHE, OBS_URL, bigUrl, thumbUrl,
@@ -48,6 +48,10 @@ function localIso(d = new Date()) {
 }
 const LETTERS = ['Α', 'Β', 'Γ', 'Δ', 'Ε', 'ΣΤ', 'Ζ', 'Η'];
 const fmtDateTime = (iso) => (iso ? new Date(iso).toLocaleString('el-GR', { dateStyle: 'short', timeStyle: 'short' }) : '—');
+const mean = (arr) => {
+  const v = arr.filter((x) => x !== null && x !== undefined && !Number.isNaN(Number(x))).map(Number);
+  return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
+};
 
 let toastTimer = null;
 function toast(msg, ms = 3500, icon = '') {
@@ -77,8 +81,9 @@ function confirmBox(text, okLabel = 'Ναι') {
 // ---------- Κατάσταση ----------
 const S = {
   tab: 'work',
-  workStep: 1, // 1: Διαδρομή, 2: Τετράγωνα Πλαίσια, 3: Παρατηρήσεις
+  workStep: 1, // 1: Διαδρομή, 2: Τετράγωνα Πλαίσια, 3: Παρατηρήσεις, 4: Κάρτα Υγείας
   plantsOpen: false, // Αναδυόμενος οδηγός φυτών πάνω από κάθε οθόνη
+  pinMenuOpen: false, // Αναδυόμενο μενού προσθήκης σημείου στον χάρτη
   setupDone: false,
   area: null,
   areas: null, // κατάλογος περιοχών (../areas/areas.json)
@@ -116,6 +121,52 @@ async function saveP(p) {
   await dbPut('points', p);
   const i = S.points.findIndex((x) => x.id === p.id);
   if (i >= 0) S.points[i] = p; else S.points.push(p);
+}
+
+// ---------- Παράθυρο Πληροφοριών (Info & Κρινάκι της Θάλασσας) ----------
+function openInfoModal() {
+  const lily = CATALOG.find((x) => x.id === 'krinaki') || CATALOG[0];
+  const lilyImg = lily ? thumbUrl(lily, lily.photos[0]) : 'icons/icon-192.png';
+  $('infoCard').innerHTML = `
+    <div class="info-top">
+      <h2>${ic('circle-info')} Σχετικά με την Έρευνα Πεδίου</h2>
+      <button type="button" class="btn small" data-act="info-close">${ic('xmark')} Κλείσιμο</button>
+    </div>
+
+    <div class="lily-hero">
+      <img src="${lilyImg}" alt="Κρινάκι της θάλασσας">
+      <div>
+        <h3>${ic('spa')} Ο Πρωταγωνιστής μας: Το Κρινάκι της Θάλασσας</h3>
+        <p>Το <b>Κρινάκι της θάλασσας</b> (<i>Pancratium maritimum</i>) είναι το εμβληματικό φυτό των αμμοθινών. Αντέχει τον καυτό ήλιο, τον άνεμο και την αλμύρα, συγκρατεί την άμμο με τις βαθιές ρίζες του και αποτελεί τον βασικό <b>δείκτη υγείας</b> του παράκτιου οικοσυστήματος!</p>
+      </div>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-sec">
+        <h3>${ic('bullseye')} 1. Στόχος (Τι ερευνούμε;)</h3>
+        <p>Ερευνούμε τις παράκτιες αμμοθίνες: πώς αλλάζει η βλάστηση από το κύμα προς τη στεριά (ζώνωση), ποια φυτά επιβιώνουν στην άμμο (με επίκεντρο το κρινάκι) και ποιες ανθρώπινες πιέσεις ή εισβλητικά είδη απειλούν τις θίνες.</p>
+      </div>
+      <div class="info-sec">
+        <h3>${ic('compass')} 2. Πορεία (Τι κάνουμε;)</h3>
+        <p><b>α)</b> Καταγράφουμε τη διαδρομή μας από τη θάλασσα στη θίνη.<br>
+        <b>β)</b> Τοποθετούμε το <b>Τετράγωνο πλαίσιο (1×1 μ.)</b>, βγάζουμε κάτοψη με πλέγμα 10×10 και μετράμε ποσοστά κάλυψης & φυτά.<br>
+        <b>γ)</b> Σημειώνουμε στον χάρτη κρινάκια, πιέσεις και παρατηρήσεις.</p>
+      </div>
+      <div class="info-sec">
+        <h3>${ic('star')} 3. Συμπέρασμα (Τι βγάζουμε;)</h3>
+        <p>Συνθέτουμε τις μετρήσεις μας στην <b>Κάρτα Υγείας (0–10)</b>, αξιολογούμε την οικολογική κατάσταση της παραλίας και προτείνουμε μέτρα προστασίας για τις αμμοθίνες και το κρινάκι της θάλασσας.</p>
+      </div>
+    </div>
+
+    <div class="credits-box">
+      <p>${ic('user-pen')} Η εφαρμογή δημιουργήθηκε από τον <b>Κωστή Χαλκιαδάκη</b>, υπεύθυνο ΕΚΦΕ Ρεθύμνου, τον Οκτώβριο του 2026.</p>
+      <p>${ic('graduation-cap')} Η δράση πραγματοποιήθηκε στις αμμοθίνες της παραλίας του Ρεθύμνου με την επιστημονική καθοδήγηση του καθηγητή Βιολογίας στο Πανεπιστήμιο Πατρών <b>Παν. Δημόπουλου</b>, στο πλαίσιο του συνεδρίου <b>Rethymno Blue Shield</b> (29–31 Οκτωβρίου 2026).</p>
+    </div>`;
+  $('infoModal').hidden = false;
+}
+
+function closeInfoModal() {
+  $('infoModal').hidden = true;
 }
 
 // ---------- Ετοιμασία: περιοχή, χάρτες, κατάλογος φυτών ----------
@@ -225,7 +276,7 @@ async function useArea(a) {
   }
   await refreshTiles();
   renderAll();
-  toast(`${S.area.name}. Τώρα «Ετοίμασε το tablet» ή «Ξεκινάμε»!`, 5000, ic('location-dot'));
+  toast(`${S.area.name}. Τώρα «Αποθήκευση χαρτών & φυτών» ή «Ξεκινάμε»!`, 5000, ic('location-dot'));
 }
 
 async function handleHash() {
@@ -402,6 +453,74 @@ async function doPos(scope, m) {
   }
 }
 
+// ---------- Κάρτα Υγείας (Γράφημα & Σύνοψη) ----------
+function chartSvg(t) {
+  const qs = pointsOf(t).filter((p) => p.kind === 'quadrat').sort(byDistance);
+  if (!qs.length) return '<p class="hint">Μόλις καταγράψετε τουλάχιστον ένα Τετράγωνο πλαίσιο (Βήμα 2), εδώ θα εμφανιστεί το γράφημα κάλυψης.</p>';
+  const W = 680;
+  const H = 220;
+  const L0 = 42;
+  const R0 = 16;
+  const T0 = 16;
+  const B0 = 42;
+  const iw = W - L0 - R0;
+  const ih = H - T0 - B0;
+  const bw = Math.min(58, Math.max(18, Math.floor(iw / qs.length) - 10));
+  const step = iw / qs.length;
+  let out = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Γράφημα κάλυψης τετραγώνων πλαισίων">`;
+  [0, 25, 50, 75, 100].forEach((y) => {
+    const py = T0 + ih - (y / 100) * ih;
+    out += `<line x1="${L0}" y1="${py}" x2="${W - R0}" y2="${py}" stroke="#e5dcc0" stroke-dasharray="${y === 0 || y === 100 ? '' : '3,3'}"/>`;
+    out += `<text x="${L0 - 6}" y="${py + 4}" text-anchor="end" font-size="11" fill="#555">${y}%</text>`;
+  });
+  qs.forEach((q, idx) => {
+    const cx = L0 + idx * step + step / 2;
+    const x = cx - bw / 2;
+    const bare = Math.max(0, Math.min(100, toNum(q.bare_pct) || 0));
+    const lit = Math.max(0, Math.min(100 - bare, toNum(q.litter_pct) || 0));
+    const plt = Math.max(0, Math.min(100 - bare - lit, toNum(q.plants_pct) || 0));
+    const inv = Math.max(0, Math.min(plt, toNum(q.invasive_pct) || 0));
+    let curY = T0 + ih;
+    const seg = (val, col) => {
+      if (val <= 0) return;
+      const h = (val / 100) * ih;
+      curY -= h;
+      out += `<rect x="${x}" y="${curY}" width="${bw}" height="${h}" fill="${col}"/>`;
+    };
+    seg(bare, '#E8D8A0');
+    seg(lit, '#A98467');
+    seg(plt - inv, '#2F6B50');
+    seg(inv, '#7B3FA0');
+    const z = toNum(q.zone);
+    if (z !== null && ZONES[z]) {
+      out += `<rect x="${x}" y="${T0 + ih + 3}" width="${bw}" height="6" rx="3" fill="${ZONES[z].color}"/>`;
+    }
+    const lbl = toNum(q.dist_m) !== null ? `${q.dist_m}μ.` : `Π${idx + 1}`;
+    out += `<text x="${cx}" y="${H - 18}" text-anchor="middle" font-size="12" fill="#222">${esc(lbl)}</text>`;
+  });
+  out += `<text x="${L0 + iw / 2}" y="${H - 4}" text-anchor="middle" font-size="12" fill="#444">Τετράγωνα Πλαίσια — λωρίδα χρώματος = ζώνη θίνας</text></svg>`;
+  return out;
+}
+
+function dataHints(t) {
+  const qs = pointsOf(t).filter((p) => p.kind === 'quadrat');
+  const q23 = qs.filter((p) => [2, 3].includes(toNum(p.zone)));
+  const a23 = mean(q23.map((p) => toNum(p.plants_pct)));
+  const aAll = mean(qs.map((p) => toNum(p.plants_pct)));
+  const inv = mean(qs.map((p) => toNum(p.invasive_pct)));
+  const lil = pointsOf(t).reduce((a, p) => a + (p.kind === 'quadrat' || p.kind === 'lilies' ? (toNum(p.lilies) || 0) : 0), 0);
+  const hasKrinakiInSp = qs.some((p) => (p.species || []).includes('krinaki')) || (t.detective || []).some((d) => d.species === 'krinaki');
+  const zones = [...new Set(pointsOf(t).filter((p) => ['quadrat', 'zone', 'stop'].includes(p.kind)).map((p) => toNum(p.zone)).filter((z) => z !== null))].sort();
+  const pressByType = PRESSURES.map((pr) => [pr, pointsOf(t).filter((p) => p.kind === 'pressure' && p.pressure_type === pr.id).length]).filter(([, n]) => n > 0);
+  const li = [];
+  li.push(`Φυτοκάλυψη στα Τετράγωνα πλαίσια: ${a23 !== null ? `${Math.round(a23)}% (στις ζώνες 2–3)` : aAll !== null ? `${Math.round(aAll)}% (μέσος όρος)` : 'δεν έχουν συμπληρωθεί ποσοστά ακόμη'}`);
+  li.push(`Κρινάκια της θάλασσας: ${lil > 0 ? `${lil} άτομα καταγράφηκαν` : hasKrinakiInSp ? 'εντοπίστηκε παρουσία στον κατάλογο' : '0 καταγραφές'}`);
+  li.push(`Ζώνες θίνας που καταγράφηκαν: ${zones.length ? zones.join(', ') : '—'}`);
+  li.push(`Εισβλητικά φυτά (μέσος όρος): ${inv === null ? '0%' : `${Math.round(inv)}%`}`);
+  li.push(`Ανθρώπινες πιέσεις: ${pressByType.length ? pressByType.map(([pr, n]) => `${pr.short.replace(/_/g, ' ')} ×${n}`).join(', ') : 'καμία καταγραφή'}`);
+  return li;
+}
+
 // ---------- Οθόνες ----------
 function renderTopbar() {
   const t = activeT();
@@ -429,11 +548,11 @@ function renderPrep() {
       <span class="mode-ic"><i class="${MODES[m].icon}"></i></span><b>${esc(title)}</b><span>${text}</span></button>`;
   $('view-prep').innerHTML = `
     <section class="card hero"><h1>${ic('sliders')} Αρχική Ρύθμιση Ομάδας</h1>
-      <p>Μόλις ρυθμίσετε την περιοχή και την ομάδα σας, πατήστε <b>«Ξεκινάμε την Έρευνα!»</b> και η οθόνη αυτή θα κρυφτεί.</p>
+      <p>Δηλώστε τα στοιχεία της ομάδας σας και την περιοχή έρευνας. Μόλις πατήσετε <b>«Ξεκινάμε την Έρευνα!»</b>, η ρύθμιση αυτή κρύβεται και μπαίνετε στο πεδίο εργασίας.</p>
       ${ready() ? `<p class="ready">${ic('circle-check')} Το tablet είναι πλήρως έτοιμο για την παραλία!</p>` : ''}
       <div class="btn-row">
         <button type="button" class="btn primary big" data-act="finish-prep">${ic('play')} Ξεκινάμε την Έρευνα!</button>
-        <button type="button" class="btn big" data-act="tab" data-tab="map">${ic('map')} Κατευθείαν στον Χάρτη</button>
+        <button type="button" class="btn big" data-act="info-open">${ic('circle-info')} Στόχος & Οδηγίες</button>
       </div>
     </section>
 
@@ -474,7 +593,7 @@ function renderPrep() {
     </div>`;
 }
 
-// ---- Έρευνα (Καθοδηγούμενη Πορεία 3 Βημάτων) ----
+// ---- Έρευνα (Καθοδηγούμενη Πορεία 4 Βημάτων) ----
 function nextDist(t) {
   const qs = pointsOf(t).filter((p) => p.kind === 'quadrat' && toNum(p.dist_m) !== null);
   return qs.length ? Math.max(...qs.map((p) => Number(p.dist_m))) + (toNum(t.spacing_m) || 10) : 0;
@@ -503,8 +622,8 @@ function quadRow(p, t) {
 function renderWork() {
   const t = activeT();
   if (!t) {
-    $('view-work').innerHTML = `<section class="card"><h2>${ic('compass')} Έρευνα Πεδίου</h2><p>Πρώτα ορίστε την ομάδα σας.</p>
-      <button type="button" class="btn primary big" data-act="tab" data-tab="prep">${ic('sliders')} Αρχική Ρύθμιση</button></section>`;
+    $('view-work').innerHTML = `<section class="card"><h2>${ic('compass')} Έρευνα Πεδίου</h2><p>Πρώτα ορίστε την ομάδα σας στη Ρύθμιση.</p>
+      <button type="button" class="btn primary big" data-act="tab" data-tab="prep">${ic('sliders')} Μετάβαση στη Ρύθμιση</button></section>`;
     return;
   }
   const pts = pointsOf(t);
@@ -512,23 +631,37 @@ function renderWork() {
   const stops = pts.filter((p) => p.kind === 'stop').sort((a, b) => LETTERS.indexOf(a.letter) - LETTERS.indexOf(b.letter));
   const unknowns = pts.filter((p) => p.kind === 'unknown').sort((a, b) => a.seq - b.seq);
   const others = pts.filter((p) => !['quadrat', 'stop', 'unknown'].includes(p.kind));
+  const hs = healthScore(t);
 
   const step1Done = hasLatLon(t.start) || stops.length > 0;
   const step2Done = quads.length > 0;
   const step3Done = unknowns.length > 0 || others.length > 0 || (t.detective && t.detective.length > 0);
+  const step4Done = hs.complete;
 
-  const stepper = `<div class="stepper">
+  const prepBanner = !S.setupDone ? `<div class="prep-prompt">
+    <div class="prep-prompt-text">
+      <h2>${ic('hand-point-right')} Ξεκινήστε από τη Ρύθμιση!</h2>
+      <p>Πριν ξεκινήσετε τις μετρήσεις στην παραλία, δηλώστε το όνομα της ομάδας σας, την περιοχή έρευνας και αποθηκεύστε τους χάρτες.</p>
+    </div>
+    <button type="button" class="btn primary" data-act="tab" data-tab="prep">${ic('sliders')} Μετάβαση στη Ρύθμιση</button>
+  </div>` : '';
+
+  const stepper = `${prepBanner}<div class="stepper">
     <button type="button" class="step-btn ${S.workStep === 1 ? 'active' : ''} ${step1Done ? 'done' : ''}" data-act="work-step" data-step="1">
       <span class="step-num">${step1Done && S.workStep !== 1 ? ic('check') : '1'}</span>
-      <span>Η Διαδρομή μας</span>
+      <span>1. Διαδρομή</span>
     </button>
     <button type="button" class="step-btn ${S.workStep === 2 ? 'active' : ''} ${step2Done ? 'done' : ''}" data-act="work-step" data-step="2">
       <span class="step-num">${step2Done && S.workStep !== 2 ? ic('check') : '2'}</span>
-      <span>Τετράγωνα Πλαίσια (${quads.length})</span>
+      <span>2. Πλαίσια (${quads.length})</span>
     </button>
     <button type="button" class="step-btn ${S.workStep === 3 ? 'active' : ''} ${step3Done ? 'done' : ''}" data-act="work-step" data-step="3">
       <span class="step-num">${step3Done && S.workStep !== 3 ? ic('check') : '3'}</span>
-      <span>Παρατηρήσεις (${unknowns.length + others.length + (t.detective ? t.detective.length : 0)})</span>
+      <span>3. Παρατηρήσεις (${unknowns.length + others.length + (t.detective ? t.detective.length : 0)})</span>
+    </button>
+    <button type="button" class="step-btn ${S.workStep === 4 ? 'active' : ''} ${step4Done ? 'done' : ''}" data-act="work-step" data-step="4">
+      <span class="step-num">${step4Done && S.workStep !== 4 ? ic('check') : '4'}</span>
+      <span>4. Κάρτα Υγείας ${hs.complete ? `(${hs.total}/10)` : ''}</span>
     </button>
   </div>`;
 
@@ -579,40 +712,102 @@ function renderWork() {
     return;
   }
 
-  // Βήμα 3: Παρατηρήσεις & Ντετέκτιβ Φυτών
+  if (S.workStep === 3) {
+    $('view-work').innerHTML = `${stepper}
+      <section class="card"><h2>${ic('magnifying-glass')} Βήμα 3: Παρατηρήσεις Πεδίου & Κρινάκια</h2>
+        <p class="hint">Καταγράψτε αποικίες από Κρινάκια της θάλασσας (δείκτης υγείας), ανθρώπινες πιέσεις, εισβλητικά ή άγνωστα φυτά.</p>
+        <div class="kindgrid" style="margin:12px 0">
+          <button type="button" class="kbtn" style="--kc:${KINDS.lilies.color}" data-act="new" data-kind="lilies"><i class="${KINDS.lilies.icon}"></i><b>Κρινάκια</b><small>δείκτης υγείας</small></button>
+          <button type="button" class="kbtn" style="--kc:${KINDS.pressure.color}" data-act="new" data-kind="pressure"><i class="${KINDS.pressure.icon}"></i><b>Ανθρώπινη πίεση</b><small>σκουπίδια, ίχνη</small></button>
+          <button type="button" class="kbtn" style="--kc:${KINDS.invasive.color}" data-act="new" data-kind="invasive"><i class="${KINDS.invasive.icon}"></i><b>Εισβλητικό</b><small>χουζούρι</small></button>
+          <button type="button" class="kbtn" style="--kc:${KINDS.unknown.color}" data-act="new" data-kind="unknown"><i class="${KINDS.unknown.icon}"></i><b>Άγνωστο φυτό</b><small>φωτογραφία</small></button>
+          <button type="button" class="kbtn" style="--kc:${KINDS.photo.color}" data-act="new" data-kind="photo" data-subject="inland"><i class="${KINDS.photo.icon}"></i><b>Πανοραμική</b><small>φωτογραφία</small></button>
+        </div>
+        ${others.map((p) => `<div class="row" data-act="edit" data-id="${esc(p.id)}"><div class="sym" style="background:${KINDS[p.kind].color}"><i class="${KINDS[p.kind].icon}"></i></div>
+          <div class="rbody"><b>${esc(pointName(p))}</b><span class="meta">${effectivePos(p, t) ? 'με θέση' : 'χωρίς θέση'}${(p.photoIds || []).length ? ` · ${p.photoIds.length} φωτό` : ''}</span></div></div>`).join('')}
+        ${unknowns.map((p) => `<div class="row" data-act="edit" data-id="${esc(p.id)}"><div class="sym" style="background:${KINDS.unknown.color}"><i class="${KINDS.unknown.icon}"></i></div>
+          <div class="rbody"><b>${esc(pointName(p))}</b><span class="meta">${esc(p.observe || '')}</span></div></div>`).join('')}
+      </section>
+
+      <section class="card"><h2>${ic('leaf')} Φυτό που Ξεχωρίσαμε στη Διαδρομή</h2>
+        ${(t.detective || []).map((d, i) => `<div class="det"><span class="pin-n">${i + 1}</span><b>${esc(speciesName(d.species))}</b>
+          <input data-det="${i}" value="${esc(d.why)}" placeholder="Το ξεχωρίσαμε γιατί…" autocomplete="off">
+          <button type="button" class="btn small ghost" data-act="det-del" data-i="${i}">${ic('xmark')}</button></div>`).join('')}
+        <div class="btn-row"><button type="button" class="btn" data-act="pick" data-for="det">${ic('leaf')} Επιλογή από τον Κατάλογο Φυτών</button></div>
+      </section>
+
+      <div class="step-nav">
+        <button type="button" class="btn" data-act="work-step" data-step="2">${ic('arrow-left')} 2. Τετράγωνα Πλαίσια</button>
+        <button type="button" class="btn primary big" data-act="work-step" data-step="4">Συνέχεια: 4. Κάρτα Υγείας ${ic('arrow-right')}</button>
+      </div>`;
+    return;
+  }
+
+  // Βήμα 4: Κάρτα Υγείας της Αμμοθίνας
+  t.health = t.health || { scores: {}, why: {}, impressions: ['', '', ''], proposal: '' };
+  t.health.scores = t.health.scores || {};
+  t.health.why = t.health.why || {};
+  t.health.impressions = t.health.impressions || ['', '', ''];
+  const h = t.health;
+  const crit = CRITERIA.map((c, i) => `<div class="crit">
+      <h3>${i + 1}. ${esc(c.name)}</h3>
+      <div class="opts">${c.opts.map((o, v) => `<button type="button" class="opt s${v} ${toNum(h.scores[c.id]) === v ? 'on' : ''}" data-act="score" data-c="${c.id}" data-v="${v}"><b>${v}</b><span>${esc(o)}</span></button>`).join('')}</div>
+      <input data-hf="why.${c.id}" placeholder="Αιτιολόγηση (Γιατί δώσατε αυτόν τον βαθμό;)" value="${esc(h.why[c.id] || '')}" autocomplete="off">
+    </div>`).join('');
+  const totalHtml = hs.complete
+    ? `<div id="healthTotalBox" class="total" style="background:${hs.band.color}"><b>${hs.total} / 10</b><span>${esc(hs.band.label)}</span></div>`
+    : `<div id="healthTotalBox" class="total pending"><b>${hs.partial} / 10</b><span>Έχετε βαθμολογήσει ${hs.answered} από ${CRITERIA.length} κριτήρια.</span></div>`;
+
   $('view-work').innerHTML = `${stepper}
-    <section class="card"><h2>${ic('magnifying-glass')} Βήμα 3: Ντετέκτιβ Φυτών & Παρατηρήσεις Πεδίου</h2>
-      <p class="hint">Καταγράψτε ξεχωριστά φυτά, κρινάκια, ανθρώπινες πιέσεις ή βγάλτε πανοραμικές φωτογραφίες.</p>
-      <div class="kindgrid" style="margin:12px 0">
-        <button type="button" class="kbtn" style="--kc:${KINDS.lilies.color}" data-act="new" data-kind="lilies"><i class="${KINDS.lilies.icon}"></i><b>Κρινάκια</b><small>ομάδα / άτομα</small></button>
-        <button type="button" class="kbtn" style="--kc:${KINDS.pressure.color}" data-act="new" data-kind="pressure"><i class="${KINDS.pressure.icon}"></i><b>Ανθρώπινη πίεση</b><small>σκουπίδια, ίχνη</small></button>
-        <button type="button" class="kbtn" style="--kc:${KINDS.invasive.color}" data-act="new" data-kind="invasive"><i class="${KINDS.invasive.icon}"></i><b>Εισβλητικό</b><small>χουζούρι</small></button>
-        <button type="button" class="kbtn" style="--kc:${KINDS.unknown.color}" data-act="new" data-kind="unknown"><i class="${KINDS.unknown.icon}"></i><b>Άγνωστο φυτό</b><small>φωτογραφία</small></button>
-        <button type="button" class="kbtn" style="--kc:${KINDS.photo.color}" data-act="new" data-kind="photo" data-subject="inland"><i class="${KINDS.photo.icon}"></i><b>Πανοραμική</b><small>φωτογραφία</small></button>
-      </div>
-      ${others.map((p) => `<div class="row" data-act="edit" data-id="${esc(p.id)}"><div class="sym" style="background:${KINDS[p.kind].color}"><i class="${KINDS[p.kind].icon}"></i></div>
-        <div class="rbody"><b>${esc(pointName(p))}</b><span class="meta">${effectivePos(p, t) ? 'με θέση' : 'χωρίς θέση'}${(p.photoIds || []).length ? ` · ${p.photoIds.length} φωτό` : ''}</span></div></div>`).join('')}
-      ${unknowns.map((p) => `<div class="row" data-act="edit" data-id="${esc(p.id)}"><div class="sym" style="background:${KINDS.unknown.color}"><i class="${KINDS.unknown.icon}"></i></div>
-        <div class="rbody"><b>${esc(pointName(p))}</b><span class="meta">${esc(p.observe || '')}</span></div></div>`).join('')}
+    <section class="card"><h2>${ic('chart-column')} Τι δείχνουν τα Τετράγωνα Πλαίσιά μας</h2>
+      ${chartSvg(t)}
+      <div class="legendrow"><i style="background:#E8D8A0"></i>γυμνή άμμος <i style="background:#A98467"></i>νεκρά υλικά <i style="background:#2F6B50"></i>φυτά <i style="background:#7B3FA0"></i>εισβλητικά</div>
     </section>
 
-    <section class="card"><h2>${ic('leaf')} Φυτό που Ξεχωρίσαμε στη Διαδρομή</h2>
-      ${(t.detective || []).map((d, i) => `<div class="det"><span class="pin-n">${i + 1}</span><b>${esc(speciesName(d.species))}</b>
-        <input data-det="${i}" value="${esc(d.why)}" placeholder="Το ξεχωρίσαμε γιατί…" autocomplete="off">
-        <button type="button" class="btn small ghost" data-act="det-del" data-i="${i}">${ic('xmark')}</button></div>`).join('')}
-      <div class="btn-row"><button type="button" class="btn" data-act="pick" data-for="det">${ic('leaf')} Επιλογή από τον Κατάλογο Φυτών</button></div>
+    <section class="card"><h2>${ic('hashtag')} Τα νούμερά μας (Αυτόματη Σύνοψη)</h2>
+      <p class="hint">Συμβουλευτείτε τις μετρήσεις σας για να βαθμολογήσετε την υγεία της αμμοθίνας παρακάτω:</p>
+      <ul class="plain">${dataHints(t).map((x) => `<li>${esc(x)}</li>`).join('')}</ul>
+    </section>
+
+    <section class="card"><h2>${ic('star')} Βήμα 4: Κάρτα Υγείας της Αμμοθίνας (0–10)</h2>
+      <p class="hint">Για κάθε κριτήριο επιλέξτε <b>0</b>, <b>1</b> ή <b>2</b> βαθμούς και σημειώστε σύντομα το «γιατί»:</p>
+      ${crit}
+      ${totalHtml}
+      <p class="hint">Κλίμακα: 0–3 Κακή κατάσταση · 4–7 Μέτρια κατάσταση · 8–10 Καλή κατάσταση.</p>
+    </section>
+
+    <section class="card"><h2>${ic('shield-halved')} Συμπέρασμα & Πρόταση Προστασίας</h2>
+      <p class="hint">Τρία πράγματα που έκαναν εντύπωση στην ομάδα μας:</p>
+      ${[0, 1, 2].map((i) => `<label class="field">${i + 1}.<input data-hf="imp.${i}" value="${esc(h.impressions[i] || '')}" autocomplete="off"></label>`).join('')}
+      <label class="field">${ic('heart')} Πώς θα προστατεύαμε αυτή την αμμοθίνη και το κρινάκι της θάλασσας;<textarea data-hf="proposal" rows="3" placeholder="Η πρόταση της ομάδας μας…">${esc(h.proposal || '')}</textarea></label>
     </section>
 
     <div class="step-nav">
-      <button type="button" class="btn" data-act="work-step" data-step="2">${ic('arrow-left')} 2. Τετράγωνα Πλαίσια</button>
-      <button type="button" class="btn primary big" data-act="tab" data-tab="send">${ic('paper-plane')} Έτοιμοι — Αποστολή</button>
+      <button type="button" class="btn" data-act="work-step" data-step="3">${ic('arrow-left')} 3. Παρατηρήσεις</button>
+      <button type="button" class="btn primary big" data-act="tab" data-tab="send">${ic('paper-plane')} Ολοκλήρωση & Αποστολή</button>
     </div>`;
 }
 
-// ---- Χάρτης: κουμπιά Τετραγώνου Πλαισίου & πινεζών ----
+// ---- Χάρτης: ξεκάθαρα κουμπιά προσθήκης νέου σημείου ----
 const PIN_KINDS = ['quadrat', 'lilies', 'pressure', 'invasive', 'zone', 'photo'];
 function renderPinBar() {
-  $('pinBar').innerHTML = PIN_KINDS.map((k) => `<button type="button" class="pbtn ${k === 'quadrat' ? 'pbtn-main' : ''}" style="--kc:${KINDS[k].color}" data-act="pin-new" data-kind="${k}"><i class="${KINDS[k].icon}"></i><span>${esc(k === 'quadrat' ? '+ Πλαίσιο' : KINDS[k].short)}</span></button>`).join('');
+  if (!S.pinMenuOpen) {
+    $('pinBar').innerHTML = `<div class="map-add-bar">
+      <button type="button" class="map-add-btn green" data-act="pin-new" data-kind="quadrat">${ic('vector-square')} + Νέο Πλαίσιο εδώ</button>
+      <button type="button" class="map-add-btn" data-act="pin-menu-toggle">${ic('plus')} + Προσθήκη σημείου στον χάρτη</button>
+    </div>`;
+    return;
+  }
+  $('pinBar').innerHTML = `<div class="pin-drawer-card">
+    <div class="pin-drawer-head">
+      <span>${ic('map-pin')} Τι θέλεις να προσθέσεις στον χάρτη;</span>
+      <button type="button" class="btn small ghost" data-act="pin-menu-toggle">${ic('xmark')} Κλείσιμο</button>
+    </div>
+    <div class="pin-drawer-grid">
+      ${PIN_KINDS.map((k) => `<button type="button" class="pbtn" style="--kc:${KINDS[k].color}" data-act="pin-new" data-kind="${k}"><i class="${KINDS[k].icon}"></i><span>${esc(k === 'quadrat' ? 'Πλαίσιο' : KINDS[k].short)}</span></button>`).join('')}
+    </div>
+    <p class="hint" style="margin:6px 0 0">Τα σημεία που έχεις ήδη καταγράψει φαίνονται πάνω στον χάρτη (πάτησέ τα για άνοιγμα).</p>
+  </div>`;
 }
 
 function refreshMap() {
@@ -718,7 +913,7 @@ function renderSend() {
         ${b('kmz', `${ic('earth-europe')} Αρχείο KMZ για Google Earth / My Maps`)}
         ${b('csv', `${ic('file-csv')} Πίνακας CSV (Excel)`)}
       </div>
-      <p class="hint">Το ZIP περιέχει και τις κατόψεις των τετραγώνων πλαισίων με το πλέγμα 10×10.</p>
+      <p class="hint">Το ZIP περιέχει τις κατόψεις των τετραγώνων πλαισίων με το πλέγμα 10×10 και την Κάρτα Υγείας.</p>
       <button type="button" class="btn" data-act="import">${ic('file-import')} Εισαγωγή πακέτου ZIP</button>
     </section>
     <section class="card"><h2>${ic('screwdriver-wrench')} Διαχείριση Tablet</h2>
@@ -806,8 +1001,8 @@ function pctRowHtml(label, f, v, color) {
       <button type="button" class="pct-step" data-act="pct-step" data-f="${f}" data-d="-1">-1</button>
       <label class="pctf"><input type="number" inputmode="numeric" min="0" max="100" step="1" data-f="${f}" data-t="num" value="${esc(v)}"><b>%</b></label>
       <button type="button" class="pct-step" data-act="pct-step" data-f="${f}" data-d="1">+1</button>
-      <button type="button" class="pct-step" data-act="pct-step" data-f="${f}" data-d="5">+5</button>
-      <button type="button" class="pct-step" data-act="pct-step" data-f="${f}" data-d="10">+10</button>
+      <button type="button" class="pct-step" data-f="${f}" data-act="pct-step" data-d="5">+5</button>
+      <button type="button" class="pct-step" data-f="${f}" data-act="pct-step" data-d="10">+10</button>
     </div>
   </div>`;
 }
@@ -929,7 +1124,7 @@ function renderSheet() {
         }).join('')}</div>
         <label class="field">Άλλα / άγνωστα φυτά μέσα στο πλαίσιο (π.χ. «Άγνωστο 1»)<input data-f="species_other" value="${esc(d.species_other)}" autocomplete="off"></label>
         <div class="grid2"><label class="field">Πόσα διαφορετικά είδη συνολικά;<input type="number" inputmode="numeric" min="0" data-f="species_count" data-t="num" value="${esc(d.species_count)}"></label>
-          <label class="field">Κρινάκια μέσα στο πλαίσιο (άτομα)<input type="number" inputmode="numeric" min="0" data-f="lilies" data-t="num" value="${esc(d.lilies)}"></label></div></div>`);
+          <label class="field">${ic('spa')} Κρινάκια στο πλαίσιο (άτομα, για Κάρτα Υγείας)<input type="number" inputmode="numeric" min="0" data-f="lilies" data-t="num" value="${esc(d.lilies)}"></label></div></div>`);
       const others = sh.photos.filter((ph) => ph.id !== d.topPhotoId);
       parts.push(`<div class="block"><h3>${ic('camera')} Κοντινές φωτογραφίες φυτών (${others.length})</h3>
         <div class="thumbs">${others.map((ph) => `<div class="thumb"><img src="${ph.url}" alt=""><button type="button" class="x" data-act="photo-del" data-pid="${esc(ph.id)}">${ic('xmark')}</button></div>`).join('')}</div>
@@ -944,7 +1139,7 @@ function renderSheet() {
     } else if (d.kind === 'pressure') {
       parts.push(`<div class="chips">${PRESSURES.map((pr) => `<button type="button" class="chip ${d.pressure_type === pr.id ? 'on' : ''}" data-act="set" data-f="pressure_type" data-v="${pr.id}">${esc(pr.label)}</button>`).join('')}</div>`);
     } else if (d.kind === 'lilies') {
-      parts.push(`<label class="field">Πόσα κρινάκια μετρήσατε;<input type="number" inputmode="numeric" min="0" data-f="lilies" data-t="num" value="${esc(d.lilies)}"></label>`);
+      parts.push(`<label class="field">Πόσα κρινάκια της θάλασσας μετρήσατε εδώ;<input type="number" inputmode="numeric" min="0" data-f="lilies" data-t="num" value="${esc(d.lilies)}"></label>`);
     } else if (d.kind === 'invasive') {
       parts.push(`<label class="field">Πόσο % καλύπτει περίπου;<input type="number" inputmode="numeric" min="0" max="100" data-f="invasive_pct" data-t="num" value="${esc(d.invasive_pct)}"></label>`);
     } else if (d.kind === 'zone') {
@@ -1038,11 +1233,28 @@ async function handleAct(act, el, ev) {
   let t = activeT();
   switch (act) {
     case 'tab': switchTab(el.dataset.tab); break;
+    case 'info-open': openInfoModal(); break;
+    case 'info-close': closeInfoModal(); break;
+    case 'pin-menu-toggle':
+      S.pinMenuOpen = !S.pinMenuOpen;
+      renderPinBar();
+      break;
     case 'work-step':
       S.workStep = Number(el.dataset.step) || 1;
       renderWork();
       $('views').scrollTop = 0;
       break;
+    case 'score': {
+      if (!t) break;
+      t.health = t.health || { scores: {}, why: {}, impressions: ['', '', ''], proposal: '' };
+      t.health.scores = t.health.scores || {};
+      const c = el.dataset.c;
+      const v = Number(el.dataset.v);
+      t.health.scores[c] = toNum(t.health.scores[c]) === v ? null : v;
+      await saveT(t);
+      renderWork();
+      break;
+    }
     case 'finish-prep': {
       t = await ensureDefaultTeam();
       if (!t.mode) { t.mode = 'focus'; await saveT(t); }
@@ -1112,6 +1324,8 @@ async function handleAct(act, el, ev) {
     case 'pin-new': {
       t = await ensureDefaultTeam();
       if (!t.mode) { t.mode = 'focus'; await saveT(t); }
+      S.pinMenuOpen = false;
+      renderPinBar();
       const p = newPoint(el.dataset.kind);
       S.placeLabel = KINDS[p.kind].label;
       const pos = await startPlacing({});
@@ -1247,7 +1461,7 @@ async function handleAct(act, el, ev) {
       S.setupDone = false;
       await setSetting('setupDone', false);
       await ensureDefaultTeam();
-      switchTab('prep');
+      switchTab('work');
       renderAll();
       break;
     }
@@ -1310,6 +1524,16 @@ function onInput(e) {
     clearTimeout(onInput.tm);
     onInput.tm = setTimeout(() => saveT(t).catch(console.error), 400);
     renderTopbar();
+    return;
+  }
+  if (el.dataset.hf && t) {
+    t.health = t.health || { scores: {}, why: {}, impressions: ['', '', ''], proposal: '' };
+    const [a, b] = el.dataset.hf.split('.');
+    if (a === 'why') { t.health.why = t.health.why || {}; t.health.why[b] = el.value; }
+    else if (a === 'imp') { t.health.impressions = t.health.impressions || ['', '', '']; t.health.impressions[Number(b)] = el.value; }
+    else if (a === 'proposal') t.health.proposal = el.value;
+    clearTimeout(onInput.tm);
+    onInput.tm = setTimeout(() => saveT(t).catch(console.error), 400);
     return;
   }
   if (el.dataset.pf) {
@@ -1412,10 +1636,8 @@ async function boot() {
   renderPinBar();
   bindEvents();
   const t = activeT();
-  // Αν η αρχική ρύθμιση έχει ήδη γίνει (ή υπάρχουν ήδη σημεία/περιοχή), κρύβεται και ξεκινάμε στην Έρευνα!
-  const startTab = (S.setupDone || S.points.length > 0 || (S.area && t && t.mode)) ? 'work' : 'prep';
   if (t && (hasLatLon(t.start) || pointsOf(t).some((p) => p.kind === 'quadrat'))) S.workStep = 2;
-  switchTab(startTab);
+  switchTab('work');
   renderAll();
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').then(() => navigator.serviceWorker.ready).then(() => { S.swReady = true; renderPrep(); })
@@ -1423,7 +1645,6 @@ async function boot() {
   }
   askPersistent().then(storageInfo).then((s) => { S.storage = s; renderSend(); }).catch(console.error);
   await Promise.all([refreshTiles(), refreshPlants(), loadAreas()]);
-  // Αν δεν έχει επιλεγεί περιοχή και υπάρχει μία στον κατάλογο, την προεπιλέγουμε διακριτικά
   if (!S.area && S.areas && S.areas.length === 1) {
     await useArea(S.areas[0]);
   }
