@@ -3,7 +3,7 @@
 // 2. Τα πλακίδια του χάρτη μπαίνουν στην κρυφή μνήμη TILE_CACHE (κατεβάζονται από την καρτέλα «Αποστολή»).
 // Οι φύλακες tools/check_all.mjs ελέγχουν ότι κάθε αρχείο του SHELL υπάρχει και ότι το TILE_CACHE
 // είναι ίδιο με αυτό στο js/map.js. Ένα αρχείο που λείπει από το SHELL ακυρώνει ΟΛΗ την εγκατάσταση.
-const APP_CACHE = 'dunes-shell-gfd8fac7a';
+const APP_CACHE = 'dunes-shell-v2-gfd8fac7a';
 const TILE_CACHE = 'dunes-tiles-v1';
 const TILE_HOSTS = ['tile.openstreetmap.org', 'server.arcgisonline.com'];
 

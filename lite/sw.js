@@ -4,7 +4,7 @@
 // 3. TILE_CACHE: τα πλακίδια του χάρτη. ΚΟΙΝΑ με την πλήρη εφαρμογή (ίδιο όνομα με το js/map.js).
 // Τα PLANTS_CACHE και οι μικρογραφίες ενημερώνονται από το «npm run lite-catalog».
 // Ο φύλακας tools/check_all.mjs ελέγχει ότι κάθε αρχείο του SHELL υπάρχει.
-const APP_CACHE = 'lite-shell-v1-7a1f733f';
+const APP_CACHE = 'lite-shell-v2-7a1f733f';
 const PLANTS_CACHE = 'lite-plants-7a1f733f';
 const TILE_CACHE = 'dunes-tiles-v1';
 const TILE_HOSTS = ['tile.openstreetmap.org', 'server.arcgisonline.com'];
@@ -38,10 +38,10 @@ const SHELL = [
   '../lib/fonts/comfortaa-greek-700-normal.woff2',
   '../lib/fonts/comfortaa-latin-700-normal.woff2',
   '../areas/areas.json',
-  '../icons/icon.svg',
-  '../icons/icon-192.png',
-  '../icons/icon-512.png',
-  '../icons/maskable-512.png',
+  './icons/icon.svg',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './icons/maskable-512.png',
   // thumbs:start — τα γράφει το «npm run lite-catalog». Μην τα αλλάζεις με το χέρι.
   './plants/Pancratium_maritimum/01_t.webp',
   './plants/Pancratium_maritimum/02_t.webp',
