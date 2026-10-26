@@ -1,12 +1,31 @@
-/* Θίνες Ρεθύμνου — στυλ. Χρώματα από το πρωτόκολλο πεδίου. Μεγάλα κουμπιά για tablet στον ήλιο. */
+/* Θίνες — στυλ για μαθητές. Θάλασσα, άμμος, ήλιος. Μεγάλα κουμπιά για tablet στον ήλιο. */
+@font-face {
+  font-family: 'Comfortaa';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../lib/fonts/comfortaa-greek-700-normal.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Comfortaa';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../lib/fonts/comfortaa-latin-700-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215;
+}
 :root {
-  --blue: #1f6b91;
-  --green: #2f6b50;
-  --gold: #c9a24b;
-  --cream: #fff7ec;
-  --line: #d8c79a;
-  --ink: #1b2a2f;
-  --red: #c0392b;
+  --blue: #0e7c86; /* θάλασσα */
+  --sea2: #13a3a8;
+  --green: #2f8a5b; /* φυτά */
+  --gold: #f2b33d; /* ήλιος */
+  --coral: #e8684a;
+  --cream: #fff4dd; /* άμμος */
+  --line: #f0dcae;
+  --ink: #213236;
+  --red: #c8412e;
+  --round: 'Comfortaa', system-ui, sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -23,9 +42,9 @@ body {
   display: grid;
   grid-template-rows: auto 1fr auto;
   height: 100dvh;
-  background: var(--cream);
+  background: var(--cream) radial-gradient(circle at 100% 0, #fff9ec 0, var(--cream) 60%);
   color: var(--ink);
-  font: 18px/1.45 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font: 18px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* Ρητή θέση στο πλέγμα. Όταν κρύβονται η επάνω γραμμή και οι καρτέλες (τοποθέτηση στον χάρτη),
@@ -42,9 +61,11 @@ body {
   gap: 12px;
   padding: 8px 14px;
   padding-top: calc(8px + env(safe-area-inset-top));
-  background: var(--blue);
+  background: linear-gradient(100deg, var(--blue), var(--sea2));
   color: #fff;
+  box-shadow: 0 3px 0 var(--gold);
 }
+#topTitle b { font-family: var(--round); font-size: 22px; letter-spacing: 0.5px; }
 #topTitle { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
 #topTitle small { opacity: 0.9; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .net { font-size: 14px; white-space: nowrap; padding: 4px 10px; border-radius: 14px; background: rgba(255, 255, 255, 0.18); }
@@ -61,27 +82,31 @@ body {
 /* Κάρτες */
 .card {
   max-width: 860px;
-  margin: 0 auto 12px;
-  padding: 14px 16px;
+  margin: 0 auto 14px;
+  padding: 16px 18px;
   background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 14px;
+  border: 2px solid var(--line);
+  border-radius: 22px;
+  box-shadow: 0 4px 0 rgba(200, 160, 80, 0.18);
 }
-.card.good { background: #eaf4ec; border-color: var(--green); }
-.card.warnc { background: #fff1d6; border-color: var(--gold); }
-h2 { margin: 0 0 10px; font-size: 20px; color: var(--blue); border-bottom: 2px solid var(--blue); padding-bottom: 6px; }
-h3 { margin: 14px 0 6px; font-size: 17px; color: var(--green); }
+.card.good { background: #eaf6ee; border-color: var(--green); }
+.card.warnc { background: #fff1d0; border-color: var(--gold); }
+h1 { margin: 0 0 6px; font: 700 26px/1.25 var(--round); color: var(--blue); }
+h2 { margin: 0 0 10px; font: 700 20px/1.3 var(--round); color: var(--blue); }
+h3 { margin: 16px 0 6px; font: 700 17px/1.3 var(--round); color: var(--green); }
 p { margin: 8px 0; }
-.hint { color: #555; font-size: 15px; margin: 6px 0; }
+.hint { color: #5a5146; font-size: 15px; margin: 6px 0; }
+.hint.warn { color: #8a4b00; font-weight: 600; }
 .plain { margin: 6px 0; padding-left: 22px; }
 .plain li { margin: 4px 0; }
 
 /* Κουμπιά */
 .btn {
-  min-height: 52px;
-  padding: 0 18px;
+  min-height: 54px;
+  padding: 0 20px;
   border: 2px solid var(--blue);
-  border-radius: 12px;
+  border-radius: 999px;
+  box-shadow: 0 3px 0 rgba(14, 124, 134, 0.25);
   background: #fff;
   color: var(--blue);
   font: inherit;
@@ -90,13 +115,16 @@ p { margin: 8px 0; }
   text-align: center;
 }
 .btn.primary { background: var(--blue); color: #fff; }
+.btn.big { min-height: 64px; padding: 0 28px; font-size: 20px; }
+.btn.on { background: #e1f4f5; }
+.btn:active { transform: translateY(2px); box-shadow: none; }
 .btn.danger { border-color: var(--red); color: var(--red); }
 .btn.ghost { border-color: #bbb; color: #555; }
 .btn.small { min-height: 40px; padding: 0 12px; font-size: 15px; }
 .btn:disabled { opacity: 0.5; }
 .btn-row { display: flex; flex-wrap: wrap; gap: 10px; }
 .stack { display: flex; flex-direction: column; gap: 10px; margin: 10px 0; }
-.stack .btn { text-align: left; }
+.stack .btn { text-align: left; border-radius: 18px; }
 
 /* Chips */
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; align-items: center; }
@@ -111,6 +139,7 @@ p { margin: 8px 0; }
   cursor: pointer;
 }
 .chip.on { background: var(--blue); border-color: var(--blue); color: #fff; }
+.chip { border-color: var(--line); }
 .chip.inv.on { background: #7b3fa0; border-color: #7b3fa0; }
 .chip.add { border-style: dashed; color: var(--blue); font-weight: 600; }
 span.chip { min-height: 0; padding: 2px 10px; font-size: 14px; cursor: default; display: inline-flex; align-items: center; }
@@ -126,9 +155,9 @@ input, textarea, select {
   min-height: 52px;
   margin-top: 4px;
   padding: 8px 12px;
-  border: 2px solid #cdbf93;
-  border-radius: 10px;
-  background: #fff;
+  border: 2px solid #e5cf9a;
+  border-radius: 14px;
+  background: #fffdf8;
   color: var(--ink);
   font: inherit;
   font-weight: 400;
@@ -142,7 +171,7 @@ input:focus, textarea:focus { outline: 3px solid #8fc1d8; border-color: var(--bl
 #tabbar {
   display: flex;
   background: #fff;
-  border-top: 2px solid var(--line);
+  border-top: 3px solid var(--gold);
   padding-bottom: env(safe-area-inset-bottom);
 }
 .tab {
@@ -160,13 +189,14 @@ input:focus, textarea:focus { outline: 3px solid #8fc1d8; border-color: var(--bl
   gap: 2px;
   cursor: pointer;
 }
-.tab span { font-size: 22px; line-height: 1; }
-.tab.active { color: var(--blue); font-weight: 700; box-shadow: inset 0 3px 0 var(--blue); }
+.tab span { font-size: 26px; line-height: 1; transition: transform 0.15s; }
+.tab.active { color: var(--blue); font-weight: 700; background: #e7f6f6; }
+.tab.active span { transform: scale(1.18); }
 
 /* Λίστα καταγραφών */
 .kindgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
 .kbtn {
-  min-height: 84px;
+  min-height: 112px;
   padding: 6px;
   border: 2px solid var(--kc);
   border-radius: 14px;
@@ -182,9 +212,13 @@ input:focus, textarea:focus { outline: 3px solid #8fc1d8; border-color: var(--bl
   gap: 4px;
   cursor: pointer;
 }
-.kbtn i { font-style: normal; font-size: 28px; color: var(--kc); line-height: 1; }
+.kbtn { border-width: 3px; border-radius: 20px; box-shadow: 0 4px 0 var(--kc); }
+.kbtn:active { transform: translateY(3px); box-shadow: none; }
+.kbtn i { font-style: normal; font-size: 36px; line-height: 1; }
+.kbtn small { font-weight: 400; font-size: 13px; color: #6b6255; }
+.next-q { font-size: 18px; background: #e7f6f6; border-radius: 14px; padding: 8px 12px; }
 .row { display: flex; gap: 12px; align-items: flex-start; padding: 10px 2px; border-top: 1px solid #eee; cursor: pointer; }
-.sym { flex: none; width: 44px; height: 44px; border-radius: 10px; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+.sym { flex: none; width: 48px; height: 48px; border-radius: 14px; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 24px; }
 .rbody { flex: 1; min-width: 0; }
 .meta { display: block; color: #555; font-size: 15px; }
 .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; align-items: center; }
@@ -196,7 +230,9 @@ input:focus, textarea:focus { outline: 3px solid #8fc1d8; border-color: var(--bl
 .steps li.no { color: #555; }
 
 /* Θέση */
-.pos { padding: 10px; border: 2px solid #ccc; border-radius: 12px; background: #fff; }
+.pos { padding: 12px; border: 2px solid #ddd; border-radius: 18px; background: #fff; }
+.coords { margin-top: 10px; padding: 10px 12px; border-radius: 14px; background: #f3fbfb; border: 2px dashed var(--sea2); }
+.coords input { font-size: 22px; font-variant-numeric: tabular-nums; letter-spacing: 0.5px; }
 .pos.ok { border-color: var(--green); background: #eaf4ec; }
 .pos.calc { border-color: var(--gold); background: #fff8e1; }
 .pos-status { margin-bottom: 8px; font-size: 15px; word-break: break-word; }
@@ -280,6 +316,8 @@ progress { display: block; width: 100%; height: 14px; margin: 6px 0 2px; }
 .legend div { margin: 4px 0; display: flex; align-items: center; gap: 8px; }
 .lg { display: inline-block; flex: none; width: 18px; height: 18px; border-radius: 5px; border: 2px solid #fff; box-shadow: 0 0 0 1px #888; }
 .lg.dash { background: #fff; border: 2px dashed #222; box-shadow: none; }
+#drawBanner { position: absolute; top: 10px; left: 10px; right: 10px; z-index: 1100; max-width: 620px; margin: 0 auto; padding: 12px; background: #fff; border: 3px solid var(--coral); border-radius: 18px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); }
+#drawText { margin-bottom: 8px; font-weight: 600; font-size: 16px; }
 #placeBanner { position: absolute; top: 10px; left: 10px; right: 10px; z-index: 1100; max-width: 620px; margin: 0 auto; padding: 12px; background: #fff; border: 3px solid var(--red); border-radius: 14px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); }
 #placeText { margin-bottom: 8px; font-weight: 600; font-size: 16px; }
 .placing #mapTools, .placing #tabbar, .placing #topbar { display: none; }
@@ -321,12 +359,84 @@ progress { display: block; width: 100%; height: 14px; margin: 6px 0 2px; }
 
 /* Οδηγός φυτών */
 .guide h3 small { font-weight: 400; color: #555; }
-.thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px; }
+.guide .thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px; }
 .th { padding: 0; border: 0; background: #eee; border-radius: 8px; overflow: hidden; aspect-ratio: 1; cursor: pointer; }
 .th img { width: 100%; height: 100%; object-fit: cover; display: block; }
-#lightbox { position: fixed; inset: 0; background: rgba(0,0,0,.88); display: flex; align-items: center; justify-content: center; z-index: 60; padding: 10px; }
+#lightbox { position: fixed; inset: 0; background: rgba(0,0,0,.88); display: flex; align-items: center; justify-content: center; z-index: 3500; padding: 10px; }
 #lightbox[hidden] { display: none; }
 .lb-card { max-width: 900px; width: 100%; max-height: 100%; display: flex; flex-direction: column; gap: 8px; color: #fff; }
 .lb-card img { max-width: 100%; max-height: 62vh; object-fit: contain; align-self: center; border-radius: 8px; }
 #lbCap { font-size: 14px; text-align: center; }
 #lbCap a { color: #9fd0ee; }
+
+/* Αρχή: η αποστολή σε βήματα */
+.hero { background: linear-gradient(160deg, #e3f6f6, #fff 55%, #fff4dd); border-color: #bfe6e6; }
+.meter { height: 16px; border-radius: 999px; background: #f3e6c4; overflow: hidden; margin: 10px 0 4px; }
+.meter i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--gold), var(--green)); transition: width 0.4s; }
+.step-head { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+.step-head h2 { margin: 0; }
+.badge { flex: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font: 700 20px var(--round); background: var(--gold); color: #fff; box-shadow: 0 3px 0 #c98f1d; }
+.step.done { border-color: #a7d9b9; }
+.step.done .badge { background: var(--green); box-shadow: 0 3px 0 #1f6440; }
+.step.locked { opacity: 0.6; }
+.step.locked .badge { background: #b9b1a1; box-shadow: none; }
+.big-name { font-size: 20px; font-weight: 700; margin: 6px 0 10px; }
+.code { display: inline-block; padding: 2px 10px; border-radius: 999px; background: #e7f6f6; color: var(--blue); font: 700 15px/1.6 ui-monospace, monospace; letter-spacing: 1px; vertical-align: 2px; }
+.line-pic { display: flex; align-items: center; gap: 10px; margin: 6px 0 4px; font-weight: 700; }
+.line-pic i { flex: 1; height: 0; border-top: 4px dashed var(--coral); }
+
+/* Περιοχές */
+.alist { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.arow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 2px solid var(--line); border-radius: 16px; }
+.arow.on { border-color: var(--green); background: #eaf6ee; }
+.arow > div { min-width: 0; }
+.qr { width: min(320px, 80vw); margin: 10px auto; background: #fff; border-radius: 12px; border: 2px solid var(--line); }
+.qr svg { display: block; width: 100%; height: auto; }
+.mono { font: 13px/1.4 ui-monospace, monospace; word-break: break-all; background: #f7f2e6; padding: 8px; border-radius: 10px; }
+details summary { cursor: pointer; color: var(--blue); font-weight: 600; margin-top: 8px; }
+.teacher { border-style: dashed; }
+
+/* Σάρωση QR */
+#scanBox { position: fixed; inset: 0; z-index: 3600; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.9); padding: 12px; }
+.scan-card { position: relative; width: min(560px, 100%); display: flex; flex-direction: column; align-items: center; gap: 10px; color: #fff; text-align: center; }
+#scanVideo { width: 100%; max-height: 70vh; border-radius: 18px; background: #000; object-fit: cover; }
+.scan-frame { position: absolute; top: 12%; left: 50%; width: 56%; aspect-ratio: 1; transform: translateX(-50%); border: 4px solid var(--gold); border-radius: 22px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.25); pointer-events: none; }
+
+/* Font Awesome: ίδιο μέγεθος γραμμής με το κείμενο */
+.btn i, .chip i, .mt i, h1 i, h2 i, h3 i { margin-right: 2px; }
+.tab span i { font-size: 24px; }
+.kbtn i i { font-size: 34px; color: var(--kc); }
+.sym i { font-size: 22px; }
+.mk i { font-size: 15px; }
+.mk.place i { font-size: 24px; }
+.stars { color: var(--gold); letter-spacing: 2px; }
+.steps li i { width: 1.2em; text-align: center; }
+.steps li.ok i.fa-check { color: var(--green); }
+.badge i { font-size: 18px; }
+
+/* Τρόπος έρευνας */
+.modes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 10px 0; }
+.mode-card { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 16px; border: 3px solid var(--line); border-radius: 20px; background: #fffdf8; color: var(--ink); font: inherit; text-align: left; cursor: pointer; box-shadow: 0 4px 0 rgba(200, 160, 80, 0.25); }
+.mode-card b { font: 700 19px/1.25 var(--round); color: var(--blue); }
+.mode-card small { color: #6b6255; }
+.mode-card.on { border-color: var(--green); background: #eaf6ee; }
+.mode-card:active { transform: translateY(3px); box-shadow: none; }
+.mode-ic { width: 54px; height: 54px; border-radius: 16px; display: flex; align-items: center; justify-content: center; background: linear-gradient(140deg, var(--blue), var(--sea2)); color: #fff; font-size: 26px; }
+.mode-now { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: #e7f6f6; border-radius: 14px; padding: 6px 12px; }
+.mode-now .chip { min-height: 36px; margin-left: auto; }
+.mode-tag { float: right; font-size: 14px; color: var(--blue); }
+@media (max-width: 600px) { .modes { grid-template-columns: 1fr; } .mode-tag { float: none; display: block; } }
+
+/* Κάτοψη με πινέζες */
+.plan { position: relative; display: block; width: 100%; max-width: 720px; margin: 8px auto; border-radius: 14px; overflow: hidden; cursor: crosshair; touch-action: manipulation; border: 3px solid var(--line); background: #222; }
+.plan img { display: block; width: 100%; height: auto; max-height: 70vh; object-fit: contain; user-select: none; -webkit-user-select: none; }
+.plan.moving { border-color: var(--coral); }
+.pin { position: absolute; width: 34px; height: 34px; margin: -17px 0 0 -17px; border: 3px solid #fff; border-radius: 50%; background: var(--coral); color: #fff; font: 700 15px/1 system-ui, sans-serif; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.55); cursor: pointer; padding: 0; }
+.pin.on { background: var(--gold); color: #213236; transform: scale(1.25); z-index: 2; }
+.pin-n { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--coral); color: #fff; font: 700 14px/1 system-ui, sans-serif; }
+.pin-edit { margin: 10px 0; padding: 12px; border: 3px solid var(--gold); border-radius: 18px; background: #fffaf0; }
+.pin-edit-head { display: flex; align-items: center; gap: 10px; font-size: 18px; }
+.pin-list { list-style: none; margin: 8px 0 0; padding: 0; }
+.pin-list li { display: flex; align-items: center; gap: 10px; padding: 8px 6px; border-top: 1px dashed var(--line); cursor: pointer; }
+.pin-list li.on { background: #fff4dd; border-radius: 10px; }
+.plan-empty { padding: 12px; border: 3px dashed var(--sea2); border-radius: 18px; background: #f3fbfb; }

@@ -3,7 +3,7 @@
 // 2. Τα πλακίδια του χάρτη μπαίνουν στην κρυφή μνήμη TILE_CACHE (κατεβάζονται από την καρτέλα «Αποστολή»).
 // Οι φύλακες tools/check_all.mjs ελέγχουν ότι κάθε αρχείο του SHELL υπάρχει και ότι το TILE_CACHE
 // είναι ίδιο με αυτό στο js/map.js. Ένα αρχείο που λείπει από το SHELL ακυρώνει ΟΛΗ την εγκατάσταση.
-const APP_CACHE = 'dunes-shell-v2';
+const APP_CACHE = 'dunes-shell-gfd8fac7a';
 const TILE_CACHE = 'dunes-tiles-v1';
 const TILE_HOSTS = ['tile.openstreetmap.org', 'server.arcgisonline.com'];
 
@@ -25,10 +25,21 @@ const SHELL = [
   './lib/leaflet/leaflet.js',
   './lib/leaflet/leaflet.css',
   './lib/jszip.min.js',
+  './lib/qrcode.js',
+  './lib/fa/css/fontawesome.min.css',
+  './lib/fa/css/solid.min.css',
+  './lib/fa/css/regular.min.css',
+  './lib/fa/webfonts/fa-solid-900.woff2',
+  './lib/fa/webfonts/fa-regular-400.woff2',
+  './lib/jsQR.js',
+  './lib/fonts/comfortaa-greek-700-normal.woff2',
+  './lib/fonts/comfortaa-latin-700-normal.woff2',
+  './areas/areas.json',
   './icons/icon.svg',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/maskable-512.png',
+  // plants:start — τα γράφει το «npm run guide». Μην τα αλλάζεις με το χέρι.
   './plants/Pancratium_maritimum/01.jpg',
   './plants/Pancratium_maritimum/02.jpg',
   './plants/Pancratium_maritimum/03.jpg',
@@ -76,19 +87,14 @@ const SHELL = [
   './plants/Cakile_maritima/05.jpg',
   './plants/Cakile_maritima/06.jpg',
   './plants/Cakile_maritima/07.jpg',
-  './plants/Cakile_maritima/08.jpg',
-  './plants/Cakile_maritima/09.jpg',
-  './plants/Cakile_maritima/10.jpg',
-  './plants/Medicago_sativa/01.jpg',
-  './plants/Medicago_sativa/02.jpg',
-  './plants/Medicago_sativa/03.jpg',
-  './plants/Medicago_sativa/04.jpg',
-  './plants/Medicago_sativa/05.jpg',
-  './plants/Medicago_sativa/06.jpg',
-  './plants/Medicago_sativa/07.jpg',
-  './plants/Medicago_sativa/08.jpg',
-  './plants/Medicago_sativa/09.jpg',
-  './plants/Medicago_sativa/10.jpg',
+  './plants/Medicago_marina/01.jpg',
+  './plants/Medicago_marina/02.jpg',
+  './plants/Medicago_marina/03.jpg',
+  './plants/Medicago_marina/04.jpg',
+  './plants/Medicago_marina/05.jpg',
+  './plants/Medicago_marina/06.jpg',
+  './plants/Medicago_marina/07.jpg',
+  './plants/Medicago_marina/08.jpg',
   './plants/Matthiola_tricuspidata/01.jpg',
   './plants/Matthiola_tricuspidata/02.jpg',
   './plants/Matthiola_tricuspidata/03.jpg',
@@ -129,6 +135,17 @@ const SHELL = [
   './plants/Centaurea_spinosa/08.jpg',
   './plants/Centaurea_spinosa/09.jpg',
   './plants/Centaurea_spinosa/10.jpg',
+  './plants/Carpobrotus_edulis/01.jpg',
+  './plants/Carpobrotus_edulis/02.jpg',
+  './plants/Carpobrotus_edulis/03.jpg',
+  './plants/Carpobrotus_edulis/04.jpg',
+  './plants/Carpobrotus_edulis/05.jpg',
+  './plants/Carpobrotus_edulis/06.jpg',
+  './plants/Carpobrotus_edulis/07.jpg',
+  './plants/Carpobrotus_edulis/08.jpg',
+  './plants/Carpobrotus_edulis/09.jpg',
+  './plants/Carpobrotus_edulis/10.jpg',
+  // plants:end
 ];
 
 // Διάφανο πλακίδιο 1×1, όταν δεν υπάρχει σύνδεση και το πλακίδιο δεν έχει κατέβει.

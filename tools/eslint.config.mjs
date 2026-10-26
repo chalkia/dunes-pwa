@@ -1,5 +1,6 @@
 // Φύλακας «ανύπαρκτες μεταβλητές»: no-undef σε όλα τα αρχεία της εφαρμογής.
-// Οι καθολικές «L» (Leaflet) και «JSZip» φορτώνονται από τα lib/ με κλασικά <script>.
+// Οι καθολικές «L», «JSZip», «qrcode», «jsQR» φορτώνονται από τα lib/ με κλασικά <script>.
+// Ο φύλακας tools/check_all.mjs ελέγχει ότι κάθε τέτοιο αρχείο υπάρχει στο index.html και στο SHELL.
 import globals from 'globals';
 
 const common = {
@@ -18,7 +19,9 @@ export default [
     languageOptions: {
       ecmaVersion: 2023,
       sourceType: 'module',
-      globals: { ...globals.browser, L: 'readonly', JSZip: 'readonly' },
+      globals: {
+        ...globals.browser, L: 'readonly', JSZip: 'readonly', qrcode: 'readonly', jsQR: 'readonly',
+      },
     },
     rules: common,
   },

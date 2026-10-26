@@ -1,0 +1,105 @@
+{
+  "_οδηγίες": [
+    "Ο οδηγός φυτών της εφαρμογής. Αλλάζεις αυτό το αρχείο και τις φωτογραφίες στον φάκελο ../plants_photos.",
+    "Μετά τρέχεις: npm run guide   και μετά: npm run check",
+    "id: ίδιο με το SPECIES του js/schema.js. folder: ο φάκελος μέσα στο plants_photos. exclude: φωτογραφίες που ΔΕΝ μπαίνουν.",
+    "Σειρά εδώ = σειρά στον οδηγό."
+  ],
+  "species": [
+    {
+      "id": "krinaki",
+      "folder": "Pancratium_maritimum",
+      "name": "Κρινάκι της θάλασσας",
+      "latin": "Pancratium maritimum",
+      "note": "Άσπρο μεγάλο λουλούδι με μακριά πέταλα. Φυτρώνει στην κινούμενη άμμο. Ανθίζει αργά το καλοκαίρι. Προστατευόμενο: μην το κόβεις.",
+      "exclude": []
+    },
+    {
+      "id": "galanagatho",
+      "folder": "Eryngium_maritimum",
+      "name": "Γαλανάγκαθο",
+      "latin": "Eryngium maritimum",
+      "note": "Γκριζογάλανα αγκαθωτά φύλλα. Μπλε-πράσινα κεφάλια λουλουδιών. Το φθινόπωρο φαίνεται ξερό και καφέ.",
+      "exclude": []
+    },
+    {
+      "id": "galatsida",
+      "folder": "Euphorbia_paralias",
+      "name": "Γαλατσίδα της παραλίας",
+      "latin": "Euphorbia paralias",
+      "note": "Όρθιο φυτό με πυκνά γκριζοπράσινα φύλλα. Αν κόψεις το φύλλο, βγαίνει άσπρο γάλα. Προσοχή: ερεθίζει το δέρμα.",
+      "exclude": []
+    },
+    {
+      "id": "kalystegia",
+      "folder": "Calystegia_soldanella",
+      "name": "Καλυστέγια / περικοκλάδα",
+      "latin": "Calystegia soldanella",
+      "note": "Έρπουσα. Φύλλα σαν παχιά καρδιά. Λουλούδι σαν ροζ χωνί.",
+      "exclude": []
+    },
+    {
+      "id": "kakili",
+      "folder": "Cakile_maritima",
+      "name": "Κακίλη / ρόκα θάλασσας",
+      "latin": "Cakile maritima",
+      "note": "Σαρκώδη φύλλα. Μικρά ανοιχτόμωβα ή άσπρα λουλούδια με 4 πέταλα. Φυτρώνει στην πρώτη ζώνη, κοντά στη θάλασσα.",
+      "exclude": [
+        "photo_01.jpg",
+        "photo_02.jpg",
+        "photo_03.jpg"
+      ]
+    },
+    {
+      "id": "midiki",
+      "folder": "Medicago_marina",
+      "name": "Μηδική της άμμου",
+      "latin": "Medicago marina",
+      "note": "Χαμηλή, απλώνεται στην άμμο. Ασημένια χνουδωτά φύλλα σε τριάδες. Κίτρινα λουλούδια. Ο καρπός είναι σπειροειδής, σαν μικρό σαλιγκάρι.",
+      "exclude": [
+        "photo_09.jpg",
+        "photo_10.jpg"
+      ]
+    },
+    {
+      "id": "mathiola",
+      "folder": "Matthiola_tricuspidata",
+      "name": "Μαθιόλα της άμμου",
+      "latin": "Matthiola tricuspidata",
+      "note": "Χνουδωτά γκρίζα φύλλα. Λουλούδια ροζ-μοβ με 4 πέταλα, σαν σταυρός.",
+      "exclude": []
+    },
+    {
+      "id": "otanthos",
+      "folder": "Otanthus_maritimus",
+      "name": "Ώτανθος / βαμβακιά",
+      "latin": "Otanthus maritimus",
+      "note": "Άσπρος, σαν βαμβάκι. Μικρά κίτρινα κεφαλάκια. Χτίζει μικρούς θάμνους στην άμμο.",
+      "exclude": []
+    },
+    {
+      "id": "thalassokedro",
+      "folder": "Juniperus_macrocarpa",
+      "name": "Θαλασσόκεδρο",
+      "latin": "Juniperus macrocarpa",
+      "note": "Αειθαλής θάμνος ή δέντρο με αγκαθωτές βελόνες. Μεγάλοι καρποί, πρώτα πράσινοι και μετά κόκκινο-καφέ. Προστατευόμενο.",
+      "exclude": []
+    },
+    {
+      "id": "kentavria",
+      "folder": "Centaurea_spinosa",
+      "name": "Κενταύρια η αγκαθωτή",
+      "latin": "Centaurea spinosa",
+      "note": "Στρογγυλός αγκαθωτός θάμνος σαν μαξιλάρι. Άσπρα-γκρίζα κλαδιά.",
+      "exclude": []
+    },
+    {
+      "id": "carpobrotus",
+      "folder": "Carpobrotus_edulis",
+      "name": "Χουζούρι (αγιόκλημα της παραλίας)",
+      "latin": "Carpobrotus edulis",
+      "note": "ΕΙΣΒΛΗΤΙΚΟ. Παχιά τριγωνικά φύλλα σαν δάχτυλα. Μεγάλα κίτρινα, άσπρα ή ροζ λουλούδια. Σκεπάζει την άμμο σαν χαλί και πνίγει τα ντόπια φυτά. Μην το ξεριζώνεις μόνος σου.",
+      "exclude": []
+    }
+  ]
+}

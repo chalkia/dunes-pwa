@@ -78,6 +78,15 @@ for (const f of jsFiles) {
     });
     const inShell = new Set(list.map((p) => p.replace('./', '')));
     // Κάθε φωτογραφία του οδηγού φυτών πρέπει να υπάρχει και να είναι στο SHELL.
+    const spBlock = (read('js/schema.js').match(/export const SPECIES = \[([\s\S]*?)\n\];/) || [])[1] || '';
+    const spIds = new Set([...spBlock.matchAll(/\{ id: '([a-z]+)', name:/g)].map((m) => m[1]));
+    // Ο οδηγός πρέπει να συμφωνεί με το plants/species.json (αλλιώς ξέχασες το «npm run guide»).
+    const cfg = JSON.parse(read('plants/species.json'));
+    const gIds = [...read('js/guide.js').matchAll(/\{ id: "([^"]+)"/g)].map((m) => m[1]);
+    if (cfg.species.map((x) => x.id).join() !== gIds.join()) add('οδηγός φυτών', 'το js/guide.js δεν ταιριάζει με το plants/species.json. Τρέξε: npm run guide');
+    for (const m of read('js/guide.js').matchAll(/\{ id: "([^"]+)"/g)) {
+      if (!spIds.has(m[1])) add('οδηγός φυτών', `το είδος ${m[1]} του οδηγού δεν υπάρχει στο SPECIES του schema.js`);
+    }
     const guideSrc = read('js/guide.js');
     for (const m of guideSrc.matchAll(/dir: "([^"]+)"[\s\S]*?photos: \[([\s\S]*?)\] \}/g)) {
       for (const pm of m[2].matchAll(/\["(\d+\.jpg)"/g)) {
@@ -118,20 +127,125 @@ for (const f of jsFiles) {
     id: 'p1', transectId: 't1', kind: 'quadrat', ts: new Date().toISOString(), dist_m: 10, zone: 2, bare_pct: 40, litter_pct: 10, plants_pct: 50,
     invasive_pct: 5, species: ['krinaki'], species_other: 'Α1', species_count: 3, lilies: 2, footprint: 'yes', comment: 'c', pos: null, photoIds: ['f1'],
   };
-  const data = { transects: [t], points: [p], photos: [{ id: 'f1', pointId: 'p1', transectId: 't1', ts: p.ts, kind: 'quadrat' }] };
+  const t2 = { ...t, id: 't2', mode: 'plots', start: null, end: null };
+  const p2 = {
+    id: 'p2', transectId: 't2', kind: 'quadrat', ts: p.ts, dist_m: null, plot: 3, zone: null, species: [], photoIds: ['f2'], topPhotoId: 'f2',
+    pos: { lat: 35.37, lon: 24.51, src: 'manual' }, pins: [{ x: 0.2, y: 0.4, species: 'krinaki', other: '', note: 'ανθισμένο' }, { x: 0.5, y: 0.5, species: null, other: 'Α1', note: '' }],
+  };
+  const data = {
+    transects: [t, t2],
+    points: [p, p2],
+    photos: [{ id: 'f1', pointId: 'p1', transectId: 't1', ts: p.ts, kind: 'quadrat' }, { id: 'f2', pointId: 'p2', transectId: 't2', ts: p.ts, kind: 'quadrat' }],
+  };
   const names = rows.assignPhotoNames(data);
   const out = rows.buildRows(data, names);
   out.points.forEach((r) => schema.POINT_COLUMNS.forEach((c) => { if (r[c.key] === undefined) add('στήλες', `points: η στήλη ${c.key} δεν παίρνει τιμή`); }));
   out.transects.forEach((r) => schema.TRANSECT_COLUMNS.forEach((c) => { if (r[c.key] === undefined) add('στήλες', `transects: η στήλη ${c.key} δεν παίρνει τιμή`); }));
   const extra = Object.keys(out.points[0]).filter((k) => !schema.POINT_COLUMNS.some((c) => c.key === k));
   if (extra.length) add('στήλες', `points: το row έχει πεδία χωρίς στήλη: ${extra.join(', ')}`);
+  const r2 = out.points.find((r) => r.id === 'p2');
+  if (!r2 || r2.name !== 'Πλαίσιο 3' || r2.plot !== 3) add('πλαίσια', 'το πλαίσιο δεν ονομάζεται «Πλαίσιο 3» στην εξαγωγή');
+  if (!r2 || r2.pins !== '1: Κρινάκι της θάλασσας (ανθισμένο); 2: Α1') add('πλαίσια', `λάθος στήλη πινεζών: «${r2 && r2.pins}»`);
+  if (!r2 || !/κάτοψη_πινέζες\.jpg/.test(r2.photos.split(' | ')[0])) add('πλαίσια', `η εικόνα με πινέζες δεν είναι πρώτη στις φωτογραφίες: «${r2 && r2.photos}»`);
+  if (!r2 || r2.pos_source !== 'με αριθμούς') add('πλαίσια', 'η θέση «με αριθμούς» δεν φαίνεται στην εξαγωγή');
+  if (out.transects.find((r) => r.id === 't2').mode !== 'Πλαίσια έρευνας') add('πλαίσια', 'ο τρόπος έρευνας δεν φαίνεται στο transects.csv');
   const kml = rows.toKml(data, out, names);
   if (!kml.includes('<Placemark>')) add('στήλες', 'το KML δεν έχει Placemark');
   if (!/Θίνες_|Πρέβελη/.test([...names.values()].join(' ')) && ![...names.values()][0].includes('T10')) add('στήλες', 'το όνομα φωτογραφίας δεν περιέχει T10');
 }
 
+// 5β. Περιοχές: κατάλογος, κωδικοποίηση QR, συντεταγμένες, καθολικές βιβλιοθήκες.
+{
+  const url = (p) => pathToFileURL(join(root, p)).href;
+  const area = await import(url('js/area.js'));
+  const rows = await import(url('js/rows.js'));
+  let cat = null;
+  try { cat = JSON.parse(read('areas/areas.json')); } catch (e) { add('περιοχές', `το areas/areas.json δεν είναι σωστό JSON: ${e.message}`); }
+  if (cat) {
+    const seen = new Set();
+    (cat.areas || []).forEach((a, i) => {
+      const err = area.validArea(a);
+      if (err) add('περιοχές', `areas.json, περιοχή ${i + 1} (${a.code}): ${err}`);
+      if (seen.has(a.code)) add('περιοχές', `areas.json: ο κωδικός ${a.code} υπάρχει δύο φορές`);
+      seen.add(a.code);
+      if (!err) {
+        const back = area.decodeArea(area.encodeArea(a));
+        if (back.code !== a.code || back.name !== a.name || back.poly.length !== a.poly.length
+          || back.poly.some((p, j) => Math.abs(p[0] - a.poly[j][0]) > 1e-5 || Math.abs(p[1] - a.poly[j][1]) > 1e-5)) {
+          add('περιοχές', `η κωδικοποίηση QR αλλοιώνει την περιοχή ${a.code}`);
+        }
+        const h = area.parseHash(`#area=${area.encodeArea(a)}`);
+        if (!h || !h.area || h.area.code !== a.code) add('περιοχές', `ο σύνδεσμος #area= δεν διαβάζεται για ${a.code}`);
+        const data = { area: a, transects: [], points: [], photos: [] };
+        const gj = rows.toGeoJson(data, { points: [] });
+        if (gj.features[0].geometry.type !== 'Polygon') add('περιοχές', 'το GeoJSON δεν έχει το πολύγωνο της περιοχής');
+        if (!rows.toKml(data, { points: [] }, new Map()).includes('<Polygon>')) add('περιοχές', 'το KML δεν έχει το πολύγωνο της περιοχής');
+      }
+    });
+  }
+  if (area.coordPrefix(35.3797) !== '35.3' || area.coordPrefix(24.51) !== '24.5' || area.coordPrefix(-0.05) !== '0.0') add('συντεταγμένες', 'λάθος προσυμπλήρωση ως το 1ο δεκαδικό');
+  if (area.parseCoord('35,37142', 90) !== 35.37142 || area.parseCoord('135', 90) !== null || area.parseCoord('3a', 90) !== null) add('συντεταγμένες', 'λάθος ανάγνωση αριθμού συντεταγμένης');
+  if (area.normCode('reth 26') !== 'RETH26') add('περιοχές', 'λάθος κανονικοποίηση κωδικού');
+  // Κάθε καθολική βιβλιοθήκη του ESLint πρέπει να φορτώνεται από το index.html και να είναι στο SHELL.
+  const html = read('index.html');
+  const sw = read('sw.js');
+  const libs = { L: 'lib/leaflet/leaflet.js', JSZip: 'lib/jszip.min.js', qrcode: 'lib/qrcode.js', jsQR: 'lib/jsQR.js' };
+  const cfg = read('tools/eslint.config.mjs');
+  for (const m of cfg.matchAll(/\b([A-Za-z]+): 'readonly'/g)) {
+    const f = libs[m[1]];
+    if (!f) { add('βιβλιοθήκες', `η καθολική ${m[1]} δεν έχει γνωστό αρχείο στο check_all.mjs`); continue; }
+    if (!html.includes(`src="${f}"`)) add('βιβλιοθήκες', `το index.html δεν φορτώνει το ${f} (καθολική ${m[1]})`);
+    if (!sw.includes(`'./${f}'`)) add('βιβλιοθήκες', `το ${f} λείπει από το SHELL`);
+  }
+  if (!sw.includes("'./areas/areas.json'")) add('service worker', 'το areas/areas.json λείπει από το SHELL');
+  // Η δημοσίευση (GitHub Actions) πρέπει να αντιγράφει κάθε φάκελο/αρχείο που ζητά το SHELL.
+  const wf = read('.github/workflows/pages.yml');
+  const cp = (wf.match(/cp -r ([^\n]+) _site\//) || [])[1];
+  if (!cp) add('δημοσίευση', 'δεν βρέθηκε η εντολή cp -r στο pages.yml');
+  else {
+    const shipped = new Set(cp.trim().split(/\s+/));
+    const shellBlock = sw.match(/const SHELL = \[([\s\S]*?)\];/);
+    const tops = new Set([...shellBlock[1].matchAll(/'\.\/([^'/]+)/g)].map((m) => m[1]));
+    tops.forEach((t) => { if (!shipped.has(t)) add('δημοσίευση', `το pages.yml δεν αντιγράφει το «${t}» που χρειάζεται το SHELL`); });
+  }
+}
+
+// 5γ. Εικονίδια: μόνο Font Awesome. Καμία εμοτζί στις οθόνες, και κάθε fa-* να υπάρχει στη γραμματοσειρά.
+{
+  const faCss = read('lib/fa/css/fontawesome.min.css');
+  const known = new Set([...faCss.matchAll(/\.fa-([a-z0-9-]+):(?::)?before/g)].map((m) => m[1]));
+  const modifiers = new Set(['solid', 'regular', 'brands', 'fw', 'spin', 'pulse', 'lg', 'xl', 'sm', 'xs', '2x', '3x', 'beat', 'bounce', 'fade', 'flip', 'shake']);
+  if (known.size < 1000) add('εικονίδια', `το fontawesome.min.css έχει μόνο ${known.size} εικονίδια — λάθος αρχείο;`);
+  const emoji = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{25A0}-\u{25FF}\u{2300}-\u{23FF}\u{21B0}-\u{21FF}\u{2195}-\u{21AF}\u{FF0B}\u{FE0F}]/u;
+  const files = ['index.html', ...jsFiles.filter((f) => !f.endsWith('guide.js'))];
+  for (const f of files) {
+    const src = read(f);
+    src.split('\n').forEach((line, i) => {
+      if (/^\s*\/\//.test(line)) return; // σχόλια
+      const m = line.match(emoji);
+      if (m) add('εικονίδια', `${f}:${i + 1}: σύμβολο «${m[0]}» αντί για εικονίδιο Font Awesome`);
+    });
+    const names = [
+      ...[...src.matchAll(/\bfa-([a-z0-9-]+)/g)].map((m) => m[1]),
+      ...[...src.matchAll(/\bic\('([a-z0-9-]+)'/g)].map((m) => m[1]),
+    ];
+    names.filter((n) => !modifiers.has(n) && !known.has(n)).forEach((n) => add('εικονίδια', `${f}: το εικονίδιο fa-${n} δεν υπάρχει στο Font Awesome Free`));
+  }
+  // Οι γραμματοσειρές που ζητούν τα CSS του Font Awesome πρέπει να είναι στο SHELL (αλλιώς χωρίς σύνδεση: κουτάκια).
+  const sw = read('sw.js');
+  for (const css of ['lib/fa/css/solid.min.css', 'lib/fa/css/regular.min.css']) {
+    if (!read('index.html').includes(`href="${css}"`)) add('εικονίδια', `το index.html δεν φορτώνει το ${css}`);
+    for (const m of read(css).matchAll(/url\(\.\.\/webfonts\/([^)]+\.woff2)\)/g)) {
+      const rel = `lib/fa/webfonts/${m[1]}`;
+      if (!existsSync(join(root, rel))) add('εικονίδια', `λείπει το ${rel}`);
+      if (!sw.includes(`'./${rel}'`)) add('εικονίδια', `το ${rel} λείπει από το SHELL`);
+    }
+  }
+}
+
 // 6. ESLint no-undef (αν έχει εγκατασταθεί στο tools/).
 {
+  // Τρέχουμε το ESLint με το node (δουλεύει σε Windows, Mac, Linux). Το .bin/eslint δεν τρέχει στα Windows.
   const bin = join(root, 'tools/node_modules/eslint/bin/eslint.js');
   if (!existsSync(bin)) add('μεταβλητές', 'δεν υπάρχει ESLint. Τρέξε: cd tools && npm install');
   else {

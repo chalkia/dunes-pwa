@@ -1,5 +1,5 @@
 // Χάρτης (Leaflet). Η βιβλιοθήκη φορτώνεται ως καθολική μεταβλητή «L» από το lib/leaflet.
-import { AREA, areaBounds } from './area.js';
+import { areaBounds, areaGeometry } from './area.js';
 import {
   effectivePos, tilesForBounds, expandBounds, hasLatLon, toNum,
 } from './geo.js';
@@ -25,9 +25,18 @@ export const BASEMAPS = {
 };
 
 const TEAM_COLORS = ['#1F6B91', '#B8660B', '#7B3FA0', '#2F6B50', '#C0392B', '#5A5A5A', '#0E8F8F', '#A0527C'];
-const MIN_ZOOM = 13;
+const TILE_MIN_ZOOM = 13; // από αυτή τη μεγέθυνση και πάνω κατεβαίνουν πλακίδια για εκτός σύνδεσης
+const MAP_MIN_ZOOM = 5; // ο χάρτης ανοίγει ως την Ελλάδα ολόκληρη (για σχεδίαση νέας περιοχής)
+// Όριο πλακιδίων ανά υπόβαθρο. Μεγάλη περιοχή → μικρότερη μέγιστη μεγέθυνση, όχι εκατοντάδες MB.
+// Το OpenStreetMap ζητά να μην κατεβαίνουν μαζικά πλακίδια: μικρότερο όριο και ως z17.
+const TILE_LIMIT = { sat: 3000, osm: 600 };
+const TILE_MAXZ = { sat: 19, osm: 17 };
+const GREECE = [[34.7, 19.3], [41.8, 28.3]];
 
 let map = null;
+let curArea = null;
+let areaLayer = null;
+let drawing = null;
 let baseLayer = null;
 let baseName = 'none';
 let markerLayer = null;
@@ -48,12 +57,12 @@ function teamColor(id) {
 
 export function initMap(el, h) {
   handlers = h || {};
-  map = L.map(el, { minZoom: MIN_ZOOM, maxZoom: 21, zoomControl: true });
+  map = L.map(el, { minZoom: MAP_MIN_ZOOM, maxZoom: 21, zoomControl: true });
   L.control.scale({ metric: true, imperial: false }).addTo(map);
-  L.geoJSON(AREA, { style: { color: '#1F6B91', weight: 2, dashArray: '6 4', fillOpacity: 0.06 }, interactive: false }).addTo(map);
   markerLayer = L.layerGroup().addTo(map);
   fitArea();
   map.on('click', (e) => {
+    if (drawing) { addVertex(e.latlng); return; }
     if (!placing) return;
     placing.marker.setLatLng(e.latlng);
     if (handlers.onPlaceMove) handlers.onPlaceMove(e.latlng);
@@ -73,8 +82,22 @@ export function showMap() {
 }
 
 export function fitArea() {
-  const b = areaBounds();
+  if (!curArea) { map.fitBounds(GREECE); return; }
+  const b = areaBounds(curArea);
   map.fitBounds([[b.south, b.west], [b.north, b.east]], { padding: [30, 30], maxZoom: 19 });
+}
+
+// Αλλαγή περιοχής έρευνας: ζωγραφίζει το περίγραμμα και ξαναπροσαρμόζει το κάδρο.
+export function setMapArea(a) {
+  curArea = a || null;
+  if (areaLayer) { map.removeLayer(areaLayer); areaLayer = null; }
+  if (curArea) {
+    areaLayer = L.geoJSON({ type: 'Feature', properties: {}, geometry: areaGeometry(curArea) }, {
+      style: { color: '#E8684A', weight: 3, dashArray: '8 6', fillOpacity: 0.05 }, interactive: false,
+    }).addTo(map);
+  }
+  needFit = true;
+  if (map.getSize().x > 0) { needFit = false; fitArea(); }
 }
 
 export function getBaseName() {
@@ -101,19 +124,21 @@ function makeIcon(kind, p, calc) {
   const k = KINDS[kind];
   let bg = k.color;
   let fg = '#fff';
-  let text = k.sym;
+  let html = `<i class="${k.icon}"></i>`;
   let cls = 'mk';
   if (kind === 'quadrat') {
     ({ bg, fg } = quadratColor(p));
     const d = toNum(p.dist_m);
-    text = d === null ? '▦' : String(d);
+    const n = toNum(p.plot);
+    if (n !== null) html = `Π${n}`;
+    else if (d !== null) html = esc(String(d));
     cls += ' sq';
   }
   if (kind === 'lilies') fg = '#222';
   if (calc) cls += ' calc';
   return L.divIcon({
     className: '',
-    html: `<div class="${cls}" style="background:${bg};color:${fg}">${esc(text)}</div>`,
+    html: `<div class="${cls}" style="background:${bg};color:${fg}">${html}</div>`,
     iconSize: [34, 34],
     iconAnchor: [17, 17],
   });
@@ -128,7 +153,7 @@ function addMarker(pos, kind, p, name, small) {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'btn small';
-    b.textContent = 'Άνοιγμα';
+    b.innerHTML = '<i class="fa-solid fa-pen"></i> Άνοιγμα';
     b.addEventListener('click', () => { m.closePopup(); handlers.onOpenPoint(p.id); });
     el.appendChild(document.createElement('br'));
     el.appendChild(b);
@@ -161,15 +186,14 @@ export function refreshMarkers(d) {
 // ---- Τοποθέτηση σημείου με πάτημα στον χάρτη ----
 export function startPlacing({ initial } = {}) {
   if (placing) finishPlacing(false);
-  const b = areaBounds();
   const c = initial && hasLatLon(initial)
     ? { lat: Number(initial.lat), lng: Number(initial.lon) }
-    : map.getCenter() || { lat: (b.north + b.south) / 2, lng: (b.east + b.west) / 2 };
+    : map.getCenter();
   const marker = L.marker(c, {
     draggable: true,
     keyboard: false,
     zIndexOffset: 2000,
-    icon: L.divIcon({ className: 'place-wrap', html: '<div class="mk place">＋</div>', iconSize: [44, 44], iconAnchor: [22, 22] }),
+    icon: L.divIcon({ className: 'place-wrap', html: '<div class="mk place"><i class="fa-solid fa-crosshairs"></i></div>', iconSize: [44, 44], iconAnchor: [22, 22] }),
   }).addTo(map);
   marker.on('drag', () => { if (handlers.onPlaceMove) handlers.onPlaceMove(marker.getLatLng()); });
   document.body.classList.add('placing');
@@ -232,14 +256,26 @@ export function toggleLocate() {
 
 // ---- Χάρτης εκτός σύνδεσης: λήψη πλακιδίων της περιοχής ----
 export function areaTileBounds() {
-  return expandBounds(areaBounds(), 0.004);
+  return expandBounds(areaBounds(curArea), 0.004);
+}
+
+// Ποια πλακίδια θα κατέβουν: { urls, zmax }. Χωρίς περιοχή: κανένα.
+export function tilePlan(name) {
+  const bm = BASEMAPS[name];
+  if (!bm) throw new Error(`Άγνωστος χάρτης: ${name}`);
+  if (!curArea) return { urls: [], zmax: null };
+  let zmax = Math.min(bm.maxNative, TILE_MAXZ[name] || bm.maxNative);
+  let tiles = tilesForBounds(areaTileBounds(), TILE_MIN_ZOOM, zmax);
+  while (tiles.length > TILE_LIMIT[name] && zmax > TILE_MIN_ZOOM) {
+    zmax -= 1;
+    tiles = tilesForBounds(areaTileBounds(), TILE_MIN_ZOOM, zmax);
+  }
+  const urls = tiles.map((t) => bm.url.replace('{z}', t.z).replace('{x}', t.x).replace('{y}', t.y));
+  return { urls, zmax };
 }
 
 export function tileUrls(name) {
-  const bm = BASEMAPS[name];
-  if (!bm) throw new Error(`Άγνωστος χάρτης: ${name}`);
-  return tilesForBounds(areaTileBounds(), MIN_ZOOM, bm.maxNative)
-    .map((t) => bm.url.replace('{z}', t.z).replace('{x}', t.x).replace('{y}', t.y));
+  return tilePlan(name).urls;
 }
 
 export async function tileStatus(name) {
@@ -283,4 +319,43 @@ export async function downloadTiles(name, onProgress) {
   await Promise.all(Array.from({ length: 4 }, worker));
   if (aborted) throw new Error(aborted);
   return { total, failed };
+}
+
+// ---- Σχεδίαση νέας περιοχής (για εκπαιδευτικούς) ----
+function redrawSketch() {
+  drawing.layer.clearLayers();
+  const ll = drawing.pts;
+  if (ll.length >= 2) L.polygon(ll, { color: '#E8684A', weight: 3, fillOpacity: 0.12, interactive: false }).addTo(drawing.layer);
+  ll.forEach((p, i) => L.circleMarker(p, { radius: i === 0 ? 9 : 7, color: '#fff', weight: 2, fillColor: '#E8684A', fillOpacity: 1, interactive: false }).addTo(drawing.layer));
+  if (handlers.onDrawChange) handlers.onDrawChange(ll.length);
+}
+
+function addVertex(latlng) {
+  drawing.pts.push([latlng.lat, latlng.lng]);
+  redrawSketch();
+}
+
+// Επιστρέφει Promise με [[lat, lon], …] ή null (άκυρο).
+export function startDrawing(initialPoly) {
+  if (drawing) finishDrawing(false);
+  drawing = { pts: (initialPoly || []).map((p) => [p[0], p[1]]), layer: L.layerGroup().addTo(map), resolve: null };
+  document.body.classList.add('placing');
+  if (drawing.pts.length) map.fitBounds(drawing.pts, { padding: [40, 40], maxZoom: 18 });
+  redrawSketch();
+  return new Promise((resolve) => { drawing.resolve = resolve; });
+}
+
+export function drawUndo() {
+  if (!drawing) return;
+  drawing.pts.pop();
+  redrawSketch();
+}
+
+export function finishDrawing(ok) {
+  if (!drawing) return;
+  const d = drawing;
+  drawing = null;
+  map.removeLayer(d.layer);
+  document.body.classList.remove('placing');
+  d.resolve(ok ? d.pts.map(([a, b]) => [Math.round(a * 1e5) / 1e5, Math.round(b * 1e5) / 1e5]) : null);
 }

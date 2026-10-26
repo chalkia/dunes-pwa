@@ -1,10 +1,10 @@
 // Μετατροπή των δεδομένων σε γραμμές, CSV, GeoJSON και KML. Καθαρές συναρτήσεις, χωρίς DOM.
 // Έτσι δοκιμάζονται και στο Node (tools/check_columns.mjs).
 import {
-  KINDS, PRESSURES, PHOTO_SUBJECTS, SPECIES, CRITERIA, HEALTH_BANDS, POINT_COLUMNS, TRANSECT_COLUMNS, SRC_LABEL,
+  KINDS, PRESSURES, PHOTO_SUBJECTS, SPECIES, CRITERIA, HEALTH_BANDS, POINT_COLUMNS, TRANSECT_COLUMNS, SRC_LABEL, MODES, APP_NAME,
 } from './schema.js';
 import { effectivePos, hasLatLon, toNum } from './geo.js';
-import { AREA } from './area.js';
+import { areaGeometry } from './area.js';
 
 const pressureById = Object.fromEntries(PRESSURES.map((p) => [p.id, p]));
 const subjectById = Object.fromEntries(PHOTO_SUBJECTS.map((s) => [s.id, s]));
@@ -22,9 +22,27 @@ export function clockOf(iso) {
 
 const blank = (v) => (v === null || v === undefined ? '' : v);
 
+// Πλαίσιο έρευνας: τετράγωνο με αριθμό πλαισίου (τρόπος «πλαίσια»), χωρίς απόσταση στη διατομή.
+export const isPlot = (p) => p.kind === 'quadrat' && toNum(p.plot) !== null;
+
+// Πινέζες κάτοψης σε κείμενο: «1: Κρινάκι (σημείωση); 2: …».
+export function pinLabel(pin) {
+  const sp = pin.species && speciesById[pin.species] ? speciesById[pin.species].name : '';
+  const name = [sp, pin.other].filter(Boolean).join(' / ') || 'φυτό;';
+  return `${name}${pin.note ? ` (${pin.note})` : ''}`;
+}
+export function pinsText(p) {
+  return (p.pins || []).map((pin, i) => `${i + 1}: ${pinLabel(pin)}`).join('; ');
+}
+
+// Όνομα αρχείου της κάτοψης με ζωγραφισμένες πινέζες (φτιάχνεται στην εξαγωγή).
+export function pinnedName(topName) {
+  return topName.replace(/\.jpg$/i, '_πινέζες.jpg');
+}
+
 export function pointName(p) {
   switch (p.kind) {
-    case 'quadrat': return `Τετράγωνο ${blank(p.dist_m)} μ.`;
+    case 'quadrat': return isPlot(p) ? `Πλαίσιο ${p.plot}` : `Τετράγωνο ${blank(p.dist_m)} μ.`;
     case 'pressure': return `Πίεση: ${(pressureById[p.pressure_type] || { short: '—' }).short.replace(/_/g, ' ')}`;
     case 'lilies': return `Κρινάκια${p.lilies ? ` (${p.lilies})` : ''}`;
     case 'invasive': return 'Εισβλητικό φυτό';
@@ -64,7 +82,7 @@ const safe = (s) => String(s === null || s === undefined ? '' : s)
 
 function photoLabel(p) {
   switch (p.kind) {
-    case 'quadrat': return 'τετράγωνο';
+    case 'quadrat': return isPlot(p) ? `πλαίσιο${p.plot}` : 'τετράγωνο';
     case 'unknown': return `άγνωστο${blank(p.seq)}`;
     case 'pressure': return `πίεση_${(pressureById[p.pressure_type] || { short: 'άλλο' }).short}`;
     case 'lilies': return 'κρινάκια';
@@ -92,7 +110,7 @@ export function assignPhotoNames(data) {
     const idx = (seenAtPoint.get(ph.pointId) || 0) + 1;
     seenAtPoint.set(ph.pointId, idx);
     const parts = [
-      safe(t.beach), dateOf(t), safe(t.team), d !== null ? safe(`T${d}`) : '', safe(photoLabel(p)),
+      safe(t.beach), dateOf(t), safe(t.team), d !== null ? safe(`T${d}`) : '', safe(photoLabel(p)), p.topPhotoId === ph.id ? 'κάτοψη' : '',
       perPoint.get(ph.pointId) > 1 ? String(idx) : '',
     ].filter(Boolean);
     const base = parts.join('_') || `φωτογραφία_${safe(ph.id)}`;
@@ -120,6 +138,8 @@ export function pointRow(p, t, names) {
   const sp = (p.species || []).map((id) => (speciesById[id] ? speciesById[id].name : id));
   if (p.species_other) sp.push(p.species_other);
   const files = (p.photoIds || []).map((id) => names.get(id)).filter(Boolean);
+  const top = p.topPhotoId && names.get(p.topPhotoId);
+  if (top && (p.pins || []).length) files.unshift(pinnedName(top));
   return {
     id: p.id,
     team: blank(t.team),
@@ -140,6 +160,8 @@ export function pointRow(p, t, names) {
     species: sp.join('; '),
     footprint: p.footprint === 'yes' ? 'Ναι' : p.footprint === 'no' ? 'Όχι' : '',
     pressure_type: p.kind === 'pressure' && pressureById[p.pressure_type] ? pressureById[p.pressure_type].label : '',
+    plot: isPlot(p) ? Number(p.plot) : '',
+    pins: pinsText(p),
     comment: blank(p.comment),
     ...posFields(effectivePos(p, t)),
     photos: files.join(' | '),
@@ -169,6 +191,8 @@ function endRow(t, which) {
     species: '',
     footprint: '',
     pressure_type: '',
+    plot: '',
+    pins: '',
     comment: '',
     ...posFields(hasLatLon(pos) ? { lat: Number(pos.lat), lon: Number(pos.lon), src: pos.src || 'map', acc: toNum(pos.acc) } : null),
     photos: '',
@@ -188,6 +212,8 @@ export function transectRow(t, data) {
     team: blank(t.team),
     members: blank(t.members),
     beach: blank(t.beach),
+    area: blank(t.areaCode),
+    mode: MODES[t.mode] ? MODES[t.mode].label : '',
     date: dateOf(t),
     time: timeOf(t),
     weather: blank(t.weather),
@@ -266,6 +292,8 @@ export function describeRow(r) {
   add('Είδη', r.species);
   add('Αποτύπωμα / μονοπάτι στο τετράγωνο', r.footprint);
   add('Πίεση', r.pressure_type);
+  add('Πλαίσιο', r.plot);
+  add('Φυτά στην κάτοψη', r.pins);
   add('Σχόλιο', r.comment);
   add('Θέση', r.pos_source);
   return out;
@@ -290,7 +318,9 @@ export function toMyMapsCsv(rows) {
 
 // ---- GeoJSON ----
 export function toGeoJson(data, rows) {
-  const features = [{ type: 'Feature', properties: { kind: 'Περιοχή', name: 'Περιοχή δράσης' }, geometry: AREA.geometry }];
+  const features = data.area
+    ? [{ type: 'Feature', properties: { kind: 'Περιοχή', name: data.area.name, code: data.area.code }, geometry: areaGeometry(data.area) }]
+    : [];
   data.transects.forEach((t) => {
     if (hasLatLon(t.start) && hasLatLon(t.end)) {
       features.push({
@@ -322,9 +352,9 @@ export function toKml(data, rows, names, photoRel = 'photos') {
   const kindKey = Object.fromEntries(Object.entries(KINDS).map(([k, v]) => [v.label, k]));
   const styles = Object.entries(KINDS).map(([k, v]) => `
   <Style id="k_${k}"><IconStyle><color>${kmlColor(v.color)}</color><scale>1.1</scale><Icon><href>https://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href></Icon></IconStyle><LabelStyle><scale>0.8</scale></LabelStyle></Style>`).join('');
-  const ring = AREA.geometry.coordinates[0].map((c) => `${c[0]},${c[1]},0`).join(' ');
-  const areaKml = `
-  <Placemark><name>Περιοχή δράσης</name><Style><LineStyle><color>ff1f6b91</color><width>2</width></LineStyle><PolyStyle><color>331f6b91</color></PolyStyle></Style>
+  const ring = data.area ? areaGeometry(data.area).coordinates[0].map((c) => `${c[0]},${c[1]},0`).join(' ') : '';
+  const areaKml = !data.area ? '' : `
+  <Placemark><name>${x(data.area.name)}</name><Style><LineStyle><color>ff1f6b91</color><width>2</width></LineStyle><PolyStyle><color>331f6b91</color></PolyStyle></Style>
     <Polygon><tessellate>1</tessellate><outerBoundaryIs><LinearRing><coordinates>${ring}</coordinates></LinearRing></outerBoundaryIs></Polygon></Placemark>`;
 
   const folders = [...data.transects].sort((a, b) => String(a.datetime).localeCompare(String(b.datetime))).map((t) => {
@@ -352,7 +382,7 @@ export function toKml(data, rows, names, photoRel = 'photos') {
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2"><Document>
-  <name>Θίνες Ρεθύμνου — καταγραφή πεδίου</name>${styles}${areaKml}${folders}
+  <name>${x(data.area ? `${APP_NAME} — ${data.area.name}` : `${APP_NAME} — καταγραφή πεδίου`)}</name>${styles}${areaKml}${folders}
 </Document></kml>
 `;
 }
@@ -365,7 +395,7 @@ const GREEK = {
   ο: 'o', π: 'p', ρ: 'r', σ: 's', ς: 's', τ: 't', υ: 'y', φ: 'f', χ: 'ch', ψ: 'ps', ω: 'o',
 };
 export function latinize(s) {
-  const plain = String(s === null || s === undefined ? '' : s).normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const plain = String(s === null || s === undefined ? '' : s).normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   return [...plain].map((ch) => {
     const low = ch.toLowerCase();
     if (!GREEK[low]) return ch;
@@ -378,13 +408,13 @@ export function latinize(s) {
 export function exportBaseName(data) {
   if (data.transects.length === 1) {
     const t = data.transects[0];
-    return ['Thines', safe(latinize(t.team)), safe(latinize(t.beach)), dateOf(t)].filter(Boolean).join('_');
+    return ['Ammothines', safe(latinize(t.team)), safe(latinize(t.beach)), dateOf(t)].filter(Boolean).join('_');
   }
-  return `Thines_${data.transects.length}_diatomes_${new Date().toISOString().slice(0, 10)}`;
+  return `Ammothines_${data.transects.length}_omades_${new Date().toISOString().slice(0, 10)}`;
 }
 
 export function readmeText(meta) {
-  return `ΘΙΝΕΣ ΡΕΘΥΜΝΟΥ — ΠΑΚΕΤΟ ΔΕΔΟΜΕΝΩΝ
+  return `${APP_NAME.toUpperCase()} — ΠΑΚΕΤΟ ΔΕΔΟΜΕΝΩΝ${meta.area ? ` — ${meta.area.name} (${meta.area.code})` : ''}
 Εξαγωγή: ${meta.exportedAt}
 Διατομές: ${meta.nTransects} · Σημεία: ${meta.nPoints} · Φωτογραφίες: ${meta.nPhotos}
 
@@ -395,7 +425,8 @@ export function readmeText(meta) {
   data.geojson         για QGIS, ArcGIS και άλλα συστήματα GIS
   doc.kml              για Google Earth (οι φωτογραφίες είναι στον φάκελο photos)
   data.json            πλήρες αντίγραφο ασφαλείας. Η εφαρμογή το διαβάζει με «Εισαγωγή».
-  photos/              οι φωτογραφίες, με όνομα Παραλία_ημερομηνία_ομάδα_T10_τετράγωνο.jpg
+  photos/              οι φωτογραφίες, π.χ. Παραλία_ημερομηνία_ομάδα_T10_τετράγωνο.jpg ή …_πλαίσιο2_κάτοψη.jpg
+                       (…_πινέζες.jpg: η κάτοψη με αριθμημένες πινέζες φυτών)
 
 ΣΤΟ GOOGLE MY MAPS
   1. mymaps.google.com → Δημιουργία νέου χάρτη.

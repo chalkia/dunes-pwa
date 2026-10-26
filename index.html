@@ -3,12 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Θίνες Ρεθύμνου — Καταγραφή πεδίου</title>
-  <meta name="theme-color" content="#1F6B91">
+  <title>Αμμοθίνες</title>
+  <meta name="theme-color" content="#0E7C86">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <link rel="stylesheet" href="lib/leaflet/leaflet.css">
+  <link rel="stylesheet" href="lib/fa/css/fontawesome.min.css">
+  <link rel="stylesheet" href="lib/fa/css/solid.min.css">
+  <link rel="stylesheet" href="lib/fa/css/regular.min.css">
   <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
@@ -23,28 +26,36 @@
     <section id="view-map" class="view">
       <div id="map"></div>
       <div id="mapTools">
-        <button id="btnLocate" class="mt" type="button">📍 Η θέση μου</button>
-        <button id="btnFit" class="mt" type="button">⌖ Περιοχή</button>
+        <button id="btnLocate" class="mt" type="button"><i class="fa-solid fa-location-crosshairs"></i> Η θέση μου</button>
+        <button id="btnFit" class="mt" type="button"><i class="fa-solid fa-expand"></i> Περιοχή</button>
         <button id="btnBase" class="mt" type="button">Υπόβαθρο</button>
         <button id="btnScope" class="mt" type="button">Διατομή</button>
         <button id="btnLegend" class="mt" type="button">ℹ Σύμβολα</button>
-        <button id="btnUnplaced" class="mt warn" type="button" hidden>⚠ Χωρίς θέση</button>
+        <button id="btnUnplaced" class="mt warn" type="button" hidden><i class="fa-solid fa-triangle-exclamation"></i> Χωρίς θέση</button>
       </div>
       <div id="legendBox" class="legend" hidden>
         <b>Σύμβολα</b>
         <div><i class="lg" style="background:#E8CF4F"></i> τετράγωνο: γυμνή άμμος (φυτά &lt; 20%)</div>
         <div><i class="lg" style="background:#8CC084"></i> τετράγωνο: αραιά φυτά (20–60%)</div>
         <div><i class="lg" style="background:#2F6B50"></i> τετράγωνο: πυκνά φυτά / θάμνοι</div>
-        <div><i class="lg" style="background:#D4A017"></i> ★ ομάδα κρινάκι</div>
-        <div><i class="lg" style="background:#C0392B"></i> ✖ ανθρώπινη πίεση</div>
-        <div><i class="lg" style="background:#7B3FA0"></i> ● εισβλητικό φυτό</div>
+        <div><i class="lg" style="background:#D4A017"></i> <i class="fa-solid fa-spa"></i> ομάδα κρινάκι</div>
+        <div><i class="lg" style="background:#C0392B"></i> <i class="fa-solid fa-shoe-prints"></i> ανθρώπινη πίεση</div>
+        <div><i class="lg" style="background:#7B3FA0"></i> <i class="fa-solid fa-ban"></i> εισβλητικό φυτό</div>
         <div><i class="lg" style="background:#B8660B"></i> ? άγνωστο φυτό</div>
         <div><i class="lg dash"></i> διακεκομμένο περίγραμμα = θέση υπολογισμένη</div>
+      </div>
+      <div id="drawBanner" hidden>
+        <div id="drawText"></div>
+        <div class="btn-row">
+          <button class="btn" type="button" data-act="draw-undo"><i class="fa-solid fa-rotate-left"></i> Αναίρεση</button>
+          <button id="drawOk" class="btn primary" type="button" data-act="draw-ok" disabled><i class="fa-solid fa-check"></i> Έτοιμο</button>
+          <button class="btn" type="button" data-act="draw-cancel">Άκυρο</button>
+        </div>
       </div>
       <div id="placeBanner" hidden>
         <div id="placeText"></div>
         <div class="btn-row">
-          <button id="placeOk" class="btn primary" type="button">✔ Εδώ</button>
+          <button id="placeOk" class="btn primary" type="button"><i class="fa-solid fa-check"></i> Εδώ</button>
           <button id="placeCancel" class="btn" type="button">Άκυρο</button>
         </div>
       </div>
@@ -52,15 +63,16 @@
     <section id="view-guide" class="view"></section>
     <section id="view-health" class="view"></section>
     <section id="view-export" class="view"></section>
+    <section id="view-area" class="view"></section>
   </main>
 
   <nav id="tabbar">
-    <button type="button" class="tab active" data-act="tab" data-tab="home"><span>🏠</span>Διατομή</button>
-    <button type="button" class="tab" data-act="tab" data-tab="records"><span>📝</span>Καταγραφή</button>
-    <button type="button" class="tab" data-act="tab" data-tab="map"><span>🗺</span>Χάρτης</button>
-    <button type="button" class="tab" data-act="tab" data-tab="guide"><span>🌿</span>Φυτά</button>
-    <button type="button" class="tab" data-act="tab" data-tab="health"><span>✅</span>Υγεία</button>
-    <button type="button" class="tab" data-act="tab" data-tab="export"><span>📤</span>Αποστολή</button>
+    <button type="button" class="tab active" data-act="tab" data-tab="home"><span><i class="fa-solid fa-house"></i></span>Αρχή</button>
+    <button type="button" class="tab" data-act="tab" data-tab="records"><span><i class="fa-solid fa-seedling"></i></span>Καταγραφή</button>
+    <button type="button" class="tab" data-act="tab" data-tab="map"><span><i class="fa-solid fa-map"></i></span>Χάρτης</button>
+    <button type="button" class="tab" data-act="tab" data-tab="guide"><span><i class="fa-solid fa-leaf"></i></span>Φυτά</button>
+    <button type="button" class="tab" data-act="tab" data-tab="health"><span><i class="fa-solid fa-star"></i></span>Υγεία</button>
+    <button type="button" class="tab" data-act="tab" data-tab="export"><span><i class="fa-solid fa-paper-plane"></i></span>Στείλε</button>
   </nav>
 
   <div id="sheet" hidden>
@@ -68,10 +80,10 @@
       <div class="sheet-head"><h2 id="sheetTitle"></h2></div>
       <div id="sheetBody"></div>
       <div class="sheet-foot">
-        <button id="sheetDelete" class="btn danger" type="button" hidden>🗑 Διαγραφή</button>
+        <button id="sheetDelete" class="btn danger" type="button" hidden><i class="fa-solid fa-trash-can"></i> Διαγραφή</button>
         <span class="spacer"></span>
         <button id="sheetCancel" class="btn" type="button">Άκυρο</button>
-        <button id="sheetSave" class="btn primary" type="button">Αποθήκευση</button>
+        <button id="sheetSave" class="btn primary" type="button"><i class="fa-solid fa-check"></i> Αποθήκευση</button>
       </div>
     </div>
   </div>
@@ -91,10 +103,19 @@
       <img id="lbImg" alt="">
       <div id="lbCap"></div>
       <div class="btn-row">
-        <button class="btn" type="button" data-act="lb-step" data-d="-1">◀</button>
+        <button class="btn" type="button" data-act="lb-step" data-d="-1"><i class="fa-solid fa-chevron-left"></i></button>
         <button class="btn" type="button" data-act="lb-close">Κλείσιμο</button>
-        <button class="btn" type="button" data-act="lb-step" data-d="1">▶</button>
+        <button class="btn" type="button" data-act="lb-step" data-d="1"><i class="fa-solid fa-chevron-right"></i></button>
       </div>
+    </div>
+  </div>
+
+  <div id="scanBox" hidden>
+    <div class="scan-card">
+      <video id="scanVideo" playsinline muted></video>
+      <div class="scan-frame" aria-hidden="true"></div>
+      <p id="scanText"></p>
+      <button class="btn" type="button" data-act="scan-close">Κλείσιμο</button>
     </div>
   </div>
 
@@ -102,10 +123,15 @@
 
   <input id="fileCam" type="file" accept="image/*" capture="environment" hidden>
   <input id="fileGal" type="file" accept="image/*" multiple hidden>
+  <input id="fileTop" type="file" accept="image/*" capture="environment" hidden>
+  <input id="fileTopGal" type="file" accept="image/*" hidden>
+  <input id="areaFile" type="file" accept=".kmz,.kml,.geojson,.json,application/vnd.google-earth.kmz,application/vnd.google-earth.kml+xml" hidden>
   <input id="importFile" type="file" accept=".zip,application/zip" multiple hidden>
 
   <script src="lib/leaflet/leaflet.js"></script>
   <script src="lib/jszip.min.js"></script>
+  <script src="lib/qrcode.js"></script>
+  <script src="lib/jsQR.js"></script>
   <script type="module" src="js/app.js"></script>
 </body>
 </html>

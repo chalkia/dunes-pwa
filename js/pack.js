@@ -1,9 +1,30 @@
 // Εξαγωγή και εισαγωγή πακέτων (ZIP, KMZ, CSV). Χρειάζεται το JSZip (καθολική μεταβλητή).
-import { dbGetAll, dbPutMany } from './db.js';
+import { dbGetAll, dbPutMany, getSetting } from './db.js';
 import {
   assignPhotoNames, buildRows, toCsv, toMyMapsCsv, toGeoJson, toKml, readmeText, exportBaseName,
+  pinnedName, pinLabel, pointName,
 } from './rows.js';
 import { POINT_COLUMNS, TRANSECT_COLUMNS, APP_VERSION } from './schema.js';
+import { pinnedImage } from './photos.js';
+
+// Για κάθε κάτοψη με πινέζες: φτιάχνει την εικόνα «…_πινέζες.jpg» μέσα στο zip.
+async function addPinnedImages(zip, data, names) {
+  const phById = new Map(data.photos.map((ph) => [ph.id, ph]));
+  const tById = new Map(data.transects.map((t) => [t.id, t]));
+  for (const p of data.points) {
+    const ph = p.topPhotoId && phById.get(p.topPhotoId);
+    if (!ph || !(p.pins || []).length || !names.get(ph.id)) continue;
+    const t = tById.get(p.transectId) || {};
+    const title = `${pointName(p)} · ${t.team || ''} · ${t.beach || ''}`.replace(/( · )+$/, '');
+    try {
+      const blob = await pinnedImage(ph.blob, p.pins, p.pins.map(pinLabel), title);
+      zip.file(`photos/${pinnedName(names.get(ph.id))}`, blob, { compression: 'STORE' });
+    } catch (e) {
+      console.error(e);
+      throw new Error(`Η κάτοψη «${pointName(p)}» με πινέζες δεν φτιάχτηκε: ${e.message}`);
+    }
+  }
+}
 
 // Φέρνει τα δεδομένα από τη βάση. Με onlyId: μόνο μία διατομή.
 export async function collect(onlyId = null) {
@@ -11,6 +32,7 @@ export async function collect(onlyId = null) {
   const ts = onlyId ? transects.filter((t) => t.id === onlyId) : transects;
   const ids = new Set(ts.map((t) => t.id));
   return {
+    area: await getSetting('area', null),
     transects: ts,
     points: points.filter((p) => ids.has(p.transectId)),
     photos: photos.filter((ph) => ids.has(ph.transectId)),
@@ -26,7 +48,7 @@ export async function buildPackage(data) {
   const rows = buildRows(data, names);
   const exportedAt = new Date().toISOString();
   const zip = new JSZip();
-  zip.file('README.txt', readmeText({ exportedAt, ...counts(data) }));
+  zip.file('README.txt', readmeText({ exportedAt, area: data.area, ...counts(data) }));
   zip.file('points.csv', toCsv(rows.points, POINT_COLUMNS));
   zip.file('points_mymaps.csv', toMyMapsCsv(rows.points));
   zip.file('transects.csv', toCsv(rows.transects, TRANSECT_COLUMNS));
@@ -37,6 +59,7 @@ export async function buildPackage(data) {
     version: 1,
     app: APP_VERSION,
     exportedAt,
+    area: data.area || null,
     transects: data.transects,
     points: data.points,
     photos: data.photos.map((ph) => ({
@@ -44,6 +67,7 @@ export async function buildPackage(data) {
     })),
   }, null, 1));
   data.photos.forEach((ph) => zip.file(`photos/${names.get(ph.id)}`, ph.blob, { compression: 'STORE' }));
+  await addPinnedImages(zip, data, names);
   return zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 }, mimeType: 'application/zip' });
 }
 
@@ -53,6 +77,7 @@ export async function buildKmz(data) {
   const zip = new JSZip();
   zip.file('doc.kml', toKml(data, rows, names));
   data.photos.forEach((ph) => zip.file(`photos/${names.get(ph.id)}`, ph.blob, { compression: 'STORE' }));
+  await addPinnedImages(zip, data, names);
   return zip.generateAsync({ type: 'blob', compression: 'DEFLATE', mimeType: 'application/vnd.google-earth.kmz' });
 }
 
@@ -115,5 +140,7 @@ export async function importPackage(file) {
   await dbPutMany('transects', addT);
   await dbPutMany('points', addP);
   await dbPutMany('photos', addPh);
-  return { transects: addT.length, points: addP.length, photos: addPh.length, missing };
+  return {
+    transects: addT.length, points: addP.length, photos: addPh.length, missing, area: m.area || null,
+  };
 }
